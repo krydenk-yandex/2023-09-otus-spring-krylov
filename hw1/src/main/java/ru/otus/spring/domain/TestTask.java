@@ -6,13 +6,16 @@ public class TestTask {
 
     private final String question;
 
+    public String getAnswer() {
+        return answer;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
     public TestTask(String question, String answer) {
         this.answer = answer;
         this.question = question;
-    }
-
-    @Override
-    public String toString() {
-        return "Question: '" + question + "', answer: '" + answer + "'";
     }
 }
