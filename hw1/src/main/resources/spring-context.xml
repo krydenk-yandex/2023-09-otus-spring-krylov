@@ -14,7 +14,7 @@
         <constructor-arg index="0" ref="consoleOut"/>
     </bean>
 
-    <bean id="taskToStringConverter" class="ru.otus.spring.converter.TestTaskToStringConverterConsole" />
+    <bean id="taskToStringConverter" class="ru.otus.spring.converter.TestTaskToStringConverterImpl" />
 
     <bean id="testTaskService" class="ru.otus.spring.service.TestTaskServiceImpl">
         <constructor-arg index="0" ref="testTaskRepository"/>

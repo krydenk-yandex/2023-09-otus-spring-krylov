@@ -9,8 +9,10 @@ import java.util.Scanner;
 
 import org.springframework.core.io.ClassPathResource;
 import ru.otus.spring.domain.TestTask;
+import ru.otus.spring.exception.TasksCsvMalformedException;
+import ru.otus.spring.exception.TasksCsvReadException;
 
-public class TestRepositoryCsv implements TestTaskRepository {
+public final class TestRepositoryCsv implements TestTaskRepository {
     private String tasksResourceName;
 
     public String getTasksResourceName() {
@@ -29,7 +31,7 @@ public class TestRepositoryCsv implements TestTaskRepository {
             String[] fields = line.split("\s?,\s?");
 
             if (fields.length != 2) {
-                throw new IllegalArgumentException("CSV file with tasks is malformed!");
+                throw new TasksCsvMalformedException();
             } else {
                 return new TestTask(
                         fields[0] + "?",
@@ -51,7 +53,7 @@ public class TestRepositoryCsv implements TestTaskRepository {
             }
             scanner.close();
         } catch (IOException e) {
-            throw new RuntimeException("Something went wrong on attempt to read from tasks CSV resource", e);
+            throw new TasksCsvReadException(e);
         }
 
         return lines;
