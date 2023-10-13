@@ -4,7 +4,9 @@ import ru.otus.spring.converter.TestTaskToStringConverter;
 
 public class TestRunnerServiceImpl implements TestRunnerService {
     private final TestTaskService testTaskService;
+
     private final IOService ioService;
+
     private final TestTaskToStringConverter converter;
 
     public TestRunnerServiceImpl(

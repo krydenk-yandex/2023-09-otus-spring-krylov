@@ -15,10 +15,6 @@ import ru.otus.spring.exception.TasksCsvReadException;
 public final class TestRepositoryCsv implements TestTaskRepository {
     private String tasksResourceName;
 
-    public String getTasksResourceName() {
-        return tasksResourceName;
-    }
-
     public void setTasksResourceName(String tasksResourceName) {
         this.tasksResourceName = tasksResourceName;
     }

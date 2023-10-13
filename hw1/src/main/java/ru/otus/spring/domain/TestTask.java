@@ -2,9 +2,14 @@ package ru.otus.spring.domain;
 
 public class TestTask {
 
+    private final String question;
+
     private final String answer;
 
-    private final String question;
+    public TestTask(String question, String answer) {
+        this.answer = answer;
+        this.question = question;
+    }
 
     public String getAnswer() {
         return answer;
@@ -12,10 +17,5 @@ public class TestTask {
 
     public String getQuestion() {
         return question;
-    }
-
-    public TestTask(String question, String answer) {
-        this.answer = answer;
-        this.question = question;
     }
 }

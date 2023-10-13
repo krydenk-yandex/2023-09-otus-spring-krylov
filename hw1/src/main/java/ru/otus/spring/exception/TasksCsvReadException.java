@@ -7,6 +7,7 @@ public class TasksCsvReadException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return "Error on attempt to read from tasks CSV resource" + (super.getMessage() != null ? ": " + super.getMessage() : ".");
+        return "Error on attempt to read from tasks CSV resource"
+            + (super.getMessage() != null ? ": " + super.getMessage() : ".");
     }
 }
