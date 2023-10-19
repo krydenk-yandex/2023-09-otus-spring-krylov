@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+
+    <bean id="testTaskRepository" class="ru.otus.spring.dao.TestRepositoryCsv">
+        <property name="tasksResourceName" value="questions.csv"/>
+    </bean>
+
+    <util:constant id="consoleOut" static-field="java.lang.System.out" />
+
+    <bean id="consoleIOService" class="ru.otus.spring.service.StreamsIOService">
+        <constructor-arg index="0" ref="consoleOut"/>
+    </bean>
+
+    <bean id="taskToStringConverter" class="ru.otus.spring.converter.TestTaskToStringConverterImpl" />
+
+    <bean id="testTaskService" class="ru.otus.spring.service.TestTaskServiceImpl">
+        <constructor-arg index="0" ref="testTaskRepository"/>
+    </bean>
+
+    <bean id="testRunnerService" class="ru.otus.spring.service.TestRunnerServiceImpl">
+        <constructor-arg index="0" ref="testTaskService"/>
+        <constructor-arg index="1" ref="consoleIOService"/>
+        <constructor-arg index="2" ref="taskToStringConverter"/>
+    </bean>
+</beans>
