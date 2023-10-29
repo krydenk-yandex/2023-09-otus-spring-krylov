@@ -22,13 +22,14 @@ public class TestServiceImpl implements TestService {
     public TestResult executeTestFor(Student student) {
         ioService.printLine("");
         ioService.printLine("");
-        ioService.printLine("");
         ioService.printLineLocalized("TestService.answer.the.questions");
         var questions = questionDao.findAll();
 
         var testResult = new TestResult(student);
 
         for (var question: questions) {
+            ioService.printLine("");
+            ioService.printLine("-------------------------");
             ioService.printLine(converter.convertToString(question));
 
             var answerIndex = ioService.readIntForRangeLocalized(
