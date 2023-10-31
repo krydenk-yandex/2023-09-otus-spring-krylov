@@ -5,7 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ru.otus</groupId>
-    <artifactId>hw3</artifactId>
+    <artifactId>hw1</artifactId>
+    <name>hw1</name>
     <version>1.0</version>
 
     <properties>
