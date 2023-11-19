@@ -205,13 +205,14 @@ public class BookRepositoryJdbc implements BookRepository {
         @Override
         public List<Book> extractData(ResultSet rs) throws SQLException, DataAccessException {
             var booksMap = new HashMap<Long, Book>();
+            var bookRowMapper = new BookRowMapper();
             var result = new ArrayList<Book>();
             var rowNum = 0;
             while (rs.next()) {
                 var bookId = rs.getLong("id");
                 Book book = booksMap.get(bookId);
                 if (book == null) {
-                    book = new BookRowMapper().mapRow(rs, rowNum);
+                    book = bookRowMapper.mapRow(rs, rowNum);
                     result.add(book);
                     booksMap.put(bookId, book);
                 }
