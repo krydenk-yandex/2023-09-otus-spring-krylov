@@ -16,15 +16,12 @@ public class CommentRepositoryJpa implements CommentRepository {
     @PersistenceContext
     private final EntityManager em;
 
-    private final BookRepository bookRepository;
-
     public List<Comment> findByBookId(long bookId) {
-        // put the book to persistence context
-        bookRepository.findById(bookId);
-
         return em.createQuery(
             """
                 select c from Comment c
+                join fetch c.book
+                join fetch c.book.author
                 where c.book.id = :book_id
             """,
             Comment.class

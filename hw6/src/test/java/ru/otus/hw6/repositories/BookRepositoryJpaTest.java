@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе JPA для работы с книгами ")
 @DataJpaTest
-@Import({BookRepositoryJpa.class, GenreRepositoryJpa.class})
+@Import({BookRepositoryJpa.class})
 class BookRepositoryJpaTest {
 
     @Autowired
@@ -74,9 +74,7 @@ class BookRepositoryJpaTest {
                 .matches(book -> book.getId() > 0)
                 .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedBook);
 
-        assertThat(repository.findById(returnedBook.getId()))
-                .isPresent()
-                .get()
+        assertThat(em.find(Book.class, returnedBook.getId()))
                 .isEqualTo(returnedBook);
     }
 
@@ -135,11 +133,5 @@ class BookRepositoryJpaTest {
                         dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
                 ))
                 .toList();
-    }
-
-    private static List<Book> getDbBooks() {
-        var dbAuthors = getDbAuthors();
-        var dbGenres = getDbGenres();
-        return getDbBooks(dbAuthors, dbGenres);
     }
 }
