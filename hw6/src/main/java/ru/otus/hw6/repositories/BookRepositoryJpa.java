@@ -22,16 +22,31 @@ public class BookRepositoryJpa implements BookRepository {
     @Override
     public Optional<Book> findById(long id) {
         Map<String, Object> properties = new HashMap<>();
-        properties.put("jakarta.persistence.fetchgraph", em.getEntityGraph("book-with-author"));
+        properties.put(
+                "jakarta.persistence.fetchgraph",
+                em.getEntityGraph("book-with-author-and-genres"));
 
         return Optional.ofNullable(em.find(Book.class, id, properties));
     }
 
     @Override
     public List<Book> findAll() {
-        return em.createQuery("select b from Book b", Book.class)
-            .setHint("jakarta.persistence.fetchgraph", em.getEntityGraph("book-with-author"))
-            .getResultList();
+        return withGenres(
+                em.createQuery("select b from Book b", Book.class)
+                        .setHint(
+                                "jakarta.persistence.fetchgraph",
+                                em.getEntityGraph("book-with-author")
+                        ).getResultList()
+        );
+    }
+
+    private List<Book> withGenres(List<Book> books) {
+        if (books.size() > 0) {
+            // getting genres for the whole collection by subselect
+            books.get(0).getGenres().size();
+        }
+
+        return books;
     }
 
     @Override

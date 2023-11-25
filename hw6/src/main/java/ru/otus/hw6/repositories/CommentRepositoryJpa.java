@@ -7,7 +7,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import ru.otus.hw6.exceptions.EntityNotFoundException;
 import ru.otus.hw6.models.Comment;
+import ru.otus.hw6.models.Book;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,17 +19,12 @@ public class CommentRepositoryJpa implements CommentRepository {
     private final EntityManager em;
 
     public List<Comment> findByBookId(long bookId) {
-        return em.createQuery(
-            """
-                select c from Comment c
-                join fetch c.book
-                join fetch c.book.author
-                where c.book.id = :book_id
-            """,
-            Comment.class
-        )
-        .setParameter("book_id", bookId)
-        .getResultList();
+        return Optional.ofNullable(em.find(Book.class, bookId))
+                .map(Book::getId)
+                .map(id -> em.createQuery("select c from Comment c where c.book.id = :book_id", Comment.class)
+                        .setParameter("book_id", id)
+                        .getResultList())
+                .orElseThrow(() -> new EntityNotFoundException("Book for load comments not found"));
     }
 
     public Optional<Comment> findById(long id) {

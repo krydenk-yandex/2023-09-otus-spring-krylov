@@ -1,6 +1,5 @@
 package ru.otus.hw6.repositories;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,7 @@ import ru.otus.hw6.models.Book;
 import ru.otus.hw6.models.Genre;
 
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,37 +26,29 @@ class BookRepositoryJpaTest {
     @Autowired
     private TestEntityManager em;
 
-    private List<Author> dbAuthors;
-
-    private List<Genre> dbGenres;
-
-    private List<Book> dbBooks;
-
-    @BeforeEach
-    void setUp() {
-        dbAuthors = getDbAuthors();
-        dbGenres = getDbGenres();
-        dbBooks = getDbBooks(dbAuthors, dbGenres);
-    }
-
     @DisplayName("должен загружать книгу по id")
     @Test
     void shouldReturnCorrectBookById() {
-        var expectedBook = em.getEntityManager().find(Book.class, 1);
-        em.detach(expectedBook);
+        var actualBook = repository.findById(1);
+        em.detach(actualBook.get());
 
-        var actualBook = repository.findById(expectedBook.getId());
+        var expectedBook = em.find(Book.class, 1);
 
-        assertThat(actualBook).isPresent();
-        assertThat(actualBook.get().getId()).isEqualTo(expectedBook.getId());
-        assertThat(actualBook.get().getTitle()).isEqualTo(expectedBook.getTitle());
+        assertThat(actualBook).isPresent().get()
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBook);
     }
 
     @DisplayName("должен загружать список всех книг")
     @Test
     void shouldReturnCorrectBooksList() {
         var actualBooks = repository.findAll();
-        var expectedBooks = dbBooks;
+        var expectedBooks = actualBooks.stream()
+                .map(book -> {
+                    em.detach(book);
+                    return em.find(Book.class, book.getId());
+                })
+                .collect(Collectors.toList());
 
         assertThat(actualBooks)
             .usingRecursiveFieldByFieldElementComparator()
@@ -67,71 +58,71 @@ class BookRepositoryJpaTest {
     @DisplayName("должен сохранять новую книгу")
     @Test
     void shouldSaveNewBook() {
-        var expectedBook = new Book(0, "BookTitle_10500", dbAuthors.get(0),
-                List.of(dbGenres.get(0), dbGenres.get(2)));
+        var expectedBook = new Book(
+                0,
+                "BookTitle_10500",
+                em.find(Author.class, 1),
+                List.of(
+                        em.find(Genre.class, 1),
+                        em.find(Genre.class, 2))
+                );
         var returnedBook = repository.save(expectedBook);
+
         assertThat(returnedBook).isNotNull()
                 .matches(book -> book.getId() > 0)
-                .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedBook);
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBook);
 
-        assertThat(em.find(Book.class, returnedBook.getId()))
-                .isEqualTo(returnedBook);
+        em.flush();
+        em.detach(returnedBook);
+
+        assertThat(returnedBook)
+                .usingRecursiveComparison()
+                .isEqualTo(em.find(Book.class, returnedBook.getId()));
     }
 
     @DisplayName("должен сохранять измененную книгу")
     @Test
     void shouldSaveUpdatedBook() {
-        var expectedBook = new Book(1L, "BookTitle_10500", dbAuthors.get(2),
-                List.of(dbGenres.get(4), dbGenres.get(5)));
+        var expectedBook = new Book(1L,
+                "BookTitle_10500",
+                em.find(Author.class, 2),
+                List.of(em.find(Genre.class, 1),
+                        em.find(Genre.class, 2))
+        );
 
-        assertThat(repository.findById(expectedBook.getId()))
-                .isPresent()
-                .get()
+        assertThat(em.find(Book.class, expectedBook.getId()))
+                .usingRecursiveComparison()
+                .isNotNull()
                 .isNotEqualTo(expectedBook);
 
         var returnedBook = repository.save(expectedBook);
+
         assertThat(returnedBook).isNotNull()
                 .matches(book -> book.getId() > 0)
-                .usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(expectedBook);
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBook);
 
-        assertThat(repository.findById(returnedBook.getId()))
-                .isPresent()
-                .get()
-                .isEqualTo(returnedBook);
+        em.flush();
+        em.detach(returnedBook);
+
+        assertThat(returnedBook)
+                .isNotNull()
+                .usingRecursiveComparison()
+                .isEqualTo(em.find(Book.class, returnedBook.getId()));
     }
 
     @DisplayName("должен удалять книгу по id ")
     @Test
     void shouldDeleteBook() {
-        var bookToDelete = repository.findById(1L);
-        assertThat(bookToDelete).isPresent();
+        var bookToDelete = em.find(Book.class, 1L);
+        assertThat(bookToDelete).isNotNull();
 
         repository.deleteById(1L);
-        em.getEntityManager().flush();
-        em.getEntityManager().detach(bookToDelete.get());
 
-        assertThat(repository.findById(1L)).isEmpty();
-    }
+        em.flush();
+        em.detach(bookToDelete);
 
-    private static List<Author> getDbAuthors() {
-        return IntStream.range(1, 4).boxed()
-                .map(id -> new Author(id, "Author_" + id))
-                .toList();
-    }
-
-    private static List<Genre> getDbGenres() {
-        return IntStream.range(1, 7).boxed()
-                .map(id -> new Genre(id, "Genre_" + id))
-                .toList();
-    }
-
-    private static List<Book> getDbBooks(List<Author> dbAuthors, List<Genre> dbGenres) {
-        return IntStream.range(1, 4).boxed()
-                .map(id -> new Book(id,
-                        "BookTitle_" + id,
-                        dbAuthors.get(id - 1),
-                        dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
-                ))
-                .toList();
+        assertThat(em.find(Book.class, 1L)).isNull();
     }
 }

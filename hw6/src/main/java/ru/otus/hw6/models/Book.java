@@ -1,5 +1,6 @@
 package ru.otus.hw6.models;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,9 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,6 +30,11 @@ import java.util.List;
 @NamedEntityGraph(name = "book-with-author",
     attributeNodes = {@NamedAttributeNode("author")}
 )
+@NamedEntityGraph(name = "book-with-author-and-genres",
+    attributeNodes = {
+        @NamedAttributeNode("author"),
+        @NamedAttributeNode("genres")}
+)
 public class Book {
     @Getter
     @Setter
@@ -43,7 +49,7 @@ public class Book {
 
     @Getter
     @Setter
-    @OneToOne(targetEntity = Author.class, fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = Author.class, fetch = FetchType.LAZY, cascade = {CascadeType.MERGE})
     @JoinColumn(name = "author_id")
     private Author author;
 
