@@ -1,14 +1,12 @@
 package ru.otus.hw7.repositories;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import ru.otus.hw7.models.Comment;
 import ru.otus.hw7.models.Genre;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,11 +26,11 @@ class GenreRepositoryTest {
     void shouldReturnCorrectGenresListByIds() {
         var actualGenres = repository.findByIdIn(List.of(1L, 2L, 3L));
 
-        var expectedGenres = actualGenres.stream()
-                .map(genre -> {
-                    em.detach(genre);
-                    return em.find(Genre.class, genre.getId());
-                }).collect(Collectors.toList());
+        actualGenres.forEach(genre -> em.detach(genre));
+        var expectedGenres = em.getEntityManager().createQuery(
+        "select g from Genre g where g.id in (:genre_ids)", Genre.class)
+                .setParameter("genre_ids", List.of(1L, 2L, 3L))
+                .getResultList();
 
         assertThat(actualGenres)
             .usingRecursiveFieldByFieldElementComparator()

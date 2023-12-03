@@ -39,7 +39,7 @@ class BookRepositoryTest {
     @DisplayName("должен загружать список всех книг")
     @Test
     void shouldReturnCorrectBooksList() {
-        var actualBooks = repository.findAllWithAuthorAndGenres();
+        var actualBooks = repository.findAll();
 
         assertThat(actualBooks).isNotEmpty();
 
