@@ -1,6 +1,8 @@
 package ru.otus.hw6.repositories;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
@@ -28,6 +30,31 @@ public class CommentRepositoryJpa implements CommentRepository {
     }
 
     public Optional<Comment> findById(long id) {
-        return Optional.ofNullable(em.find(Comment.class, id));
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(
+                "jakarta.persistence.fetchgraph",
+                em.getEntityGraph("comment-with-book"));
+
+        return Optional.ofNullable(em.find(Comment.class, id, properties));
+    }
+
+    @Override
+    public Comment save(Comment comment) {
+        if (comment.getId() == 0) {
+            em.persist(comment);
+            return comment;
+        }
+        return em.merge(comment);
+    }
+
+    @Override
+    public void deleteById(long id) {
+        var comment = em.find(Comment.class, id);
+
+        if (comment == null) {
+            return;
+        }
+
+        em.remove(comment);
     }
 }

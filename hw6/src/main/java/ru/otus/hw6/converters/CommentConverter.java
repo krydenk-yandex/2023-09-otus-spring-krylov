@@ -5,11 +5,14 @@ import ru.otus.hw6.models.Comment;
 
 @Component
 public class CommentConverter {
-    public String authorToString(Comment comment) {
-        return "Id: %d, Text: %s, AuthorName: %s".formatted(
+    public String commentToString(Comment comment) {
+        return ("Id: %d, Text: %s, AuthorName: %s, " +
+                "Book: { Id: %s, Title: %s }").formatted(
             comment.getId(),
             comment.getText(),
-            comment.getAuthorName()
+            comment.getAuthorName(),
+            comment.getBook().getId(),
+            comment.getBook().getTitle()
         );
     }
 }

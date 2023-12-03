@@ -11,7 +11,6 @@ import ru.otus.hw6.models.Book;
 import ru.otus.hw6.models.Genre;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,12 +42,10 @@ class BookRepositoryJpaTest {
     @Test
     void shouldReturnCorrectBooksList() {
         var actualBooks = repository.findAll();
-        var expectedBooks = actualBooks.stream()
-                .map(book -> {
-                    em.detach(book);
-                    return em.find(Book.class, book.getId());
-                })
-                .collect(Collectors.toList());
+
+        var expectedBooks = em.getEntityManager()
+                .createQuery("select b from Book b", Book.class)
+                .getResultList();
 
         assertThat(actualBooks)
             .usingRecursiveFieldByFieldElementComparator()

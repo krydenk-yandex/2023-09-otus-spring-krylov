@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import ru.otus.hw6.models.Book;
 
@@ -43,7 +44,7 @@ public class BookRepositoryJpa implements BookRepository {
     private List<Book> withGenres(List<Book> books) {
         if (books.size() > 0) {
             // getting genres for the whole collection by subselect
-            books.get(0).getGenres().size();
+            Hibernate.initialize(books.get(0).getGenres());
         }
 
         return books;
