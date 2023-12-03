@@ -10,7 +10,6 @@ import ru.otus.hw7.models.Book;
 import ru.otus.hw7.models.Genre;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,12 +43,9 @@ class BookRepositoryTest {
 
         assertThat(actualBooks).isNotEmpty();
 
-        var expectedBooks = actualBooks.stream()
-                .map(book -> {
-                    em.detach(book);
-                    return em.find(Book.class, book.getId());
-                })
-                .collect(Collectors.toList());
+        var expectedBooks = em.getEntityManager()
+                .createQuery("select b from Book b", Book.class)
+                .getResultList();
 
         assertThat(actualBooks)
             .usingRecursiveFieldByFieldElementComparator()
@@ -113,17 +109,22 @@ class BookRepositoryTest {
                 .isEqualTo(em.find(Book.class, returnedBook.getId()));
     }
 
-    @DisplayName("должен удалять книгу по id ")
+    @DisplayName("должен удалять книгу по id")
     @Test
     void shouldDeleteBook() {
         var bookToDelete = em.find(Book.class, 1L);
+        var bookGenresAssociationsQuery = em.getEntityManager().createNativeQuery(
+                        "select * from books_genres where book_id = :book_id")
+                .setParameter("book_id", bookToDelete.getId());
+
         assertThat(bookToDelete).isNotNull();
+        assertThat(bookGenresAssociationsQuery.getResultList()).isNotEmpty();
 
         repository.deleteById(1L);
-
         em.flush();
         em.detach(bookToDelete);
 
+        assertThat(bookGenresAssociationsQuery.getResultList()).isEmpty();
         assertThat(em.find(Book.class, 1L)).isNull();
     }
 }

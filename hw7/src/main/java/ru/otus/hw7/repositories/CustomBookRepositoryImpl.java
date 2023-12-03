@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import ru.otus.hw7.models.Book;
 
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class CustomBookRepositoryImpl implements CustomBookRepository {
     private List<Book> withGenres(List<Book> books) {
         if (books.size() > 0) {
             // getting genres for the whole collection by subselect
-            books.get(0).getGenres().size();
+            Hibernate.initialize(books.get(0).getGenres());
         }
 
         return books;
