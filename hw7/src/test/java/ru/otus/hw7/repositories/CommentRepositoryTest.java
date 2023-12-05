@@ -1,5 +1,7 @@
 package ru.otus.hw7.repositories;
 
+import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +31,7 @@ class CommentRepositoryTest {
         var expectedComment = em.find(Comment.class, 1);
 
         assertThat(actualComment).isPresent();
-        assertThat(actualComment.get()).isEqualTo(expectedComment);
+        assertThat(actualComment.get()).usingRecursiveComparison().isEqualTo(expectedComment);
     }
 
     @DisplayName("должен загружать список комментариев по id книги")
@@ -37,10 +39,13 @@ class CommentRepositoryTest {
     void shouldReturnCorrectCommentsListByBookId() {
         var actualComments = repository.findByBookId(1L);
 
-        var expectedComments = em.getEntityManager().createQuery(
-                "select c from Comment c where c.book.id = :book_id", Comment.class)
-                .setParameter("book_id", 1L)
-                .getResultList();
+        var expectedComments = IntStream.range(1, 3).boxed()
+                .map(id -> new Comment(id,
+                        "Comment #" + id,
+                        "Person #" + id,
+                        em.find(Book.class, 1L)
+                ))
+                .toList();
 
         assertThat(actualComments)
             .usingRecursiveFieldByFieldElementComparator()

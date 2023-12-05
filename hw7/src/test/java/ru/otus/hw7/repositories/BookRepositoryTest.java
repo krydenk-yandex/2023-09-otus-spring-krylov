@@ -10,6 +10,7 @@ import ru.otus.hw7.models.Book;
 import ru.otus.hw7.models.Genre;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -43,9 +44,7 @@ class BookRepositoryTest {
 
         assertThat(actualBooks).isNotEmpty();
 
-        var expectedBooks = em.getEntityManager()
-                .createQuery("select b from Book b", Book.class)
-                .getResultList();
+        var expectedBooks = getDbBooks();
 
         assertThat(actualBooks)
             .usingRecursiveFieldByFieldElementComparator()
@@ -126,5 +125,33 @@ class BookRepositoryTest {
 
         assertThat(bookGenresAssociationsQuery.getResultList()).isEmpty();
         assertThat(em.find(Book.class, 1L)).isNull();
+    }
+
+    private static List<Author> getDbAuthors() {
+        return IntStream.range(1, 4).boxed()
+                .map(id -> new Author(id, "Author_" + id))
+                .toList();
+    }
+
+    private static List<Genre> getDbGenres() {
+        return IntStream.range(1, 7).boxed()
+                .map(id -> new Genre(id, "Genre_" + id))
+                .toList();
+    }
+
+    private static List<Book> getDbBooks(List<Author> dbAuthors, List<Genre> dbGenres) {
+        return IntStream.range(1, 4).boxed()
+                .map(id -> new Book(id,
+                        "BookTitle_" + id,
+                        dbAuthors.get(id - 1),
+                        dbGenres.subList((id - 1) * 2, (id - 1) * 2 + 2)
+                ))
+                .toList();
+    }
+
+    private static List<Book> getDbBooks() {
+        var dbAuthors = getDbAuthors();
+        var dbGenres = getDbGenres();
+        return getDbBooks(dbAuthors, dbGenres);
     }
 }

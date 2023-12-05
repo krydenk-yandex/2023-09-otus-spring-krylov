@@ -1,6 +1,7 @@
 package ru.otus.hw7.repositories;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,10 +28,12 @@ class GenreRepositoryTest {
         var actualGenres = repository.findByIdIn(List.of(1L, 2L, 3L));
 
         actualGenres.forEach(genre -> em.detach(genre));
-        var expectedGenres = em.getEntityManager().createQuery(
-        "select g from Genre g where g.id in (:genre_ids)", Genre.class)
-                .setParameter("genre_ids", List.of(1L, 2L, 3L))
-                .getResultList();
+        var expectedGenres = IntStream.range(1, 4).boxed()
+                .map(id -> new Genre(
+                        id,
+                        "Genre_" + id
+                ))
+                .toList();
 
         assertThat(actualGenres)
             .usingRecursiveFieldByFieldElementComparator()
