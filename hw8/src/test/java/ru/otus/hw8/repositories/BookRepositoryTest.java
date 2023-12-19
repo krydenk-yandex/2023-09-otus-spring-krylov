@@ -5,12 +5,11 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.otus.hw8.models.Author;
 import ru.otus.hw8.models.Book;
 import ru.otus.hw8.models.Genre;
@@ -18,17 +17,19 @@ import ru.otus.hw8.models.Genre;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе Mongo Spring Data для работы с книгами ")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DataMongoTest
 class BookRepositoryTest {
 
     @Autowired
     private BookRepository repository;
 
+    @Autowired
+    private MongoOperations operations;
+
 
     @DisplayName("должен загружать книгу по id")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
-    @Order(1)
     void shouldReturnCorrectBookById() {
         final String BOOK_ID = "1";
 
@@ -44,8 +45,8 @@ class BookRepositoryTest {
     }
 
     @DisplayName("должен загружать список всех книг")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
-    @Order(2)
     void shouldReturnCorrectBooksList() {
         var actualBooks = repository.findAll();
 
@@ -82,7 +83,7 @@ class BookRepositoryTest {
         assertThat(returnedBook)
                 .usingRecursiveComparison()
                 .isEqualTo(
-                        repository.findById(returnedBook.getId()).get()
+                        operations.findById(returnedBook.getId(), Book.class)
                 );
     }
 
@@ -101,7 +102,7 @@ class BookRepositoryTest {
                 )
         );
 
-        assertThat(repository.findById(BOOK_ID))
+        assertThat(operations.findById(BOOK_ID, Book.class))
                 .usingRecursiveComparison()
                 .isNotNull()
                 .isNotEqualTo(expectedBook);
@@ -116,7 +117,7 @@ class BookRepositoryTest {
         assertThat(returnedBook)
                 .isNotNull()
                 .usingRecursiveComparison()
-                .isEqualTo(repository.findById(BOOK_ID).get());
+                .isEqualTo(operations.findById(returnedBook.getId(), Book.class));
     }
 
     @DisplayName("должен удалять книгу по id")
@@ -124,13 +125,13 @@ class BookRepositoryTest {
     void shouldDeleteBook() {
         final var BOOK_ID = "1";
 
-        var bookToDelete = repository.findById(BOOK_ID).get();
+        var bookToDelete = operations.findById(BOOK_ID, Book.class);
 
         assertThat(bookToDelete).isNotNull();
 
         repository.deleteById(BOOK_ID);
 
-        assertThat(repository.findById(BOOK_ID)).isNotPresent();
+        assertThat(operations.findById(BOOK_ID, Book.class)).isNull();
     }
 
     private static List<Author> getDbAuthors() {

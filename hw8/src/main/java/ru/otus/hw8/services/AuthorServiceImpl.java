@@ -29,7 +29,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public void deleteById(String id) {
-        if (authorRepository.findById(id).isEmpty()) {
+        if (!authorRepository.existsById(id)) {
             throw new EntityNotFoundException("Author is not found on attempt to delete");
         }
 

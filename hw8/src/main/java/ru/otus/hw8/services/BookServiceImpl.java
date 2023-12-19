@@ -2,9 +2,9 @@ package ru.otus.hw8.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw8.converters.BookConverter;
 import ru.otus.hw8.dto.BookDto;
+import ru.otus.hw8.projections.IdProjection;
 import ru.otus.hw8.exceptions.EntityNotFoundException;
 import ru.otus.hw8.models.Book;
 import ru.otus.hw8.repositories.AuthorRepository;
@@ -31,13 +31,11 @@ public class BookServiceImpl implements BookService {
     private final BookConverter bookConverter;
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<Book> findById(String id) {
         return bookRepository.findById(id);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<BookDto> findAll() {
         return bookRepository.findAll()
                 .stream()
@@ -45,22 +43,23 @@ public class BookServiceImpl implements BookService {
                 .toList();
     }
 
-    @Transactional
     @Override
     public Book insert(String title, String authorId, List<String> genresIds) {
         return save(null, title, authorId, genresIds);
     }
 
-    @Transactional
     @Override
     public Book update(String id, String title, String authorId, List<String> genresIds) {
         return save(id, title, authorId, genresIds);
     }
 
-    @Transactional
     @Override
     public void deleteById(String id) {
-        commentRepository.deleteAll(commentRepository.findByBookId(id));
+        commentRepository.deleteAllById(
+                commentRepository.findIdsByBookId(id).stream()
+                        .map(IdProjection::_id)
+                        .toList()
+        );
         bookRepository.deleteById(id);
     }
 

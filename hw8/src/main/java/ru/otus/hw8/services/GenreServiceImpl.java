@@ -34,12 +34,11 @@ public class GenreServiceImpl implements GenreService {
 
     @Override
     public void deleteById(String id) {
-        var theGenre = genreRepository.findById(id);
-        if (theGenre.isEmpty()) {
+        if (!genreRepository.existsById(id)) {
             throw new EntityNotFoundException("Genre is not found on attempt to delete");
         }
 
-        if (bookRepository.existsBookByGenresContains(List.of(theGenre.get()))) {
+        if (bookRepository.existsBookByGenresId(id)) {
             throw new EntityDeletionForbidException(
                     "There are books related to genre with id %s, handle books first"
                             .formatted(id));

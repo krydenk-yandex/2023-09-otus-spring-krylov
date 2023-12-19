@@ -4,28 +4,30 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.otus.hw8.models.Book;
 import ru.otus.hw8.models.Comment;
+import ru.otus.hw8.projections.IdProjection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе Mongo Spring Data для работы с комментариями к книге ")
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DataMongoTest
 class CommentRepositoryTest {
 
     @Autowired
     private CommentRepository repository;
 
+    @Autowired
+    private MongoOperations operations;
+
     @DisplayName("должен загружать комментарий по id")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
-    @Order(1)
     void shouldReturnCorrectCommentById() {
         final String COMMENT_ID = "1";
 
@@ -43,8 +45,8 @@ class CommentRepositoryTest {
     }
 
     @DisplayName("должен загружать список комментариев по id книги")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
-    @Order(2)
     void shouldReturnCorrectCommentsListByBookId() {
         final String BOOK_ID = "1";
 
@@ -58,6 +60,24 @@ class CommentRepositoryTest {
             .containsExactlyElementsOf(
                     getDbComments().stream().filter(
                             c -> c.getBook().getId().equals(BOOK_ID)).toList());
+    }
+
+    @DisplayName("должен загружать список id комментариев по id книги")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    @Test
+    void shouldReturnCorrectCommentsIdsProjectionsListByBookId() {
+        final String BOOK_ID = "1";
+
+        var actualIds = repository.findIdsByBookId(BOOK_ID)
+                .stream().map(IdProjection::_id).toList();
+
+        assertThat(actualIds)
+            .containsExactlyInAnyOrderElementsOf(
+                    getDbComments().stream()
+                        .filter(c -> c.getBook().getId().equals(BOOK_ID))
+                        .map(Comment::getId)
+                        .toList()
+            );
     }
 
     @DisplayName("должен сохранять новый комментарий")
@@ -84,12 +104,11 @@ class CommentRepositoryTest {
                         "book.author",
                         "book.genres"
                 )
-                .isEqualTo(repository.findById(returnedComment.getId()).get());
+                .isEqualTo(operations.findById(returnedComment.getId(), Comment.class));
     }
 
     @DisplayName("должен сохранять измененный комментарий")
     @Test
-    @Order(3)
     void shouldSaveUpdatedComment() {
         var expectedComment = new Comment(
                 "1",
@@ -98,7 +117,7 @@ class CommentRepositoryTest {
                 getDbBooks().stream().findFirst().get()
         );
 
-        assertThat(repository.findById(expectedComment.getId()).get())
+        assertThat(operations.findById(expectedComment.getId(), Comment.class))
                 .usingRecursiveComparison()
                 .isNotNull()
                 .isNotEqualTo(expectedComment);
@@ -121,7 +140,7 @@ class CommentRepositoryTest {
                         "book.author",
                         "book.genres"
                 )
-                .isEqualTo(repository.findById(expectedComment.getId()).get());
+                .isEqualTo(operations.findById(returnedComment.getId(), Comment.class));
     }
 
     @DisplayName("должен удалять коммент по id")
@@ -129,12 +148,12 @@ class CommentRepositoryTest {
     void shouldDeleteComment() {
         final var COMMENT_ID = "1";
 
-        var commentToDelete = repository.findById(COMMENT_ID);
+        var commentToDelete = operations.findById(COMMENT_ID, Comment.class);
         assertThat(commentToDelete).isNotNull();
 
         repository.deleteById(COMMENT_ID);
 
-        assertThat(repository.findById(COMMENT_ID)).isEmpty();
+        assertThat(operations.findById(COMMENT_ID, Comment.class)).isNull();
     }
 
     private static List<Comment> getDbComments() {
