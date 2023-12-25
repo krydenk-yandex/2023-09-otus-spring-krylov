@@ -45,9 +45,9 @@ public class BookControllerTest {
     @MockBean
     private BookConverter bookConverter;
 
-    List<Author> authors = List.of(new Author(1, "Author_1"));
-    List<Genre> genres = List.of(new Genre(1, "Genre_1"));
-    List<Book> books = List.of(
+    private List<Author> authors = List.of(new Author(1, "Author_1"));
+    private List<Genre> genres = List.of(new Genre(1, "Genre_1"));
+    private List<Book> books = List.of(
             new Book(
                     1,
                     "Book_1",
@@ -56,7 +56,7 @@ public class BookControllerTest {
             )
     );
 
-    List<BookDto> booksDtos = books.stream().map(b -> new BookDto(
+    private List<BookDto> booksDtos = books.stream().map(b -> new BookDto(
             b.getId(),
             b.getTitle(),
             new AuthorDto(b.getAuthor().getId(), b.getAuthor().getFullName()),

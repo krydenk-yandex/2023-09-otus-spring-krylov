@@ -35,7 +35,7 @@ public class BookController {
     private final BookConverter bookConverter;
 
     @GetMapping("/")
-    public String index(Model model) {
+    public String index() {
         return "redirect:/books";
     }
 
@@ -115,9 +115,7 @@ public class BookController {
 
     @PostMapping("/books/delete/{bookId}")
     public String deleteBook(@PathVariable Long bookId) {
-        Optional<Book> book = bookService.findById(bookId);
-
-        if (book.isPresent()) {
+        if (bookService.existById(bookId)) {
             bookService.deleteById(bookId);
         }
 

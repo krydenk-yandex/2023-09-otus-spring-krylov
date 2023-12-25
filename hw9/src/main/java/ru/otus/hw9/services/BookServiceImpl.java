@@ -28,6 +28,11 @@ public class BookServiceImpl implements BookService {
     private final BookConverter bookConverter;
 
     @Override
+    public boolean existById(long id) {
+        return bookRepository.existsById(id);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<Book> findById(long id) {
         return bookRepository.findById(id);

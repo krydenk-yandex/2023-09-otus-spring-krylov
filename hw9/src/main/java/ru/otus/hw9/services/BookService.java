@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookService {
+    boolean existById(long id);
+
     Optional<Book> findById(long id);
 
     List<BookDto> findAll();
