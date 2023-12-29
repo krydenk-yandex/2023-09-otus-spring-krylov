@@ -13,7 +13,7 @@ import ru.otus.hw10.services.AuthorService;
 public class AuthorController {
     private final AuthorService authorService;
 
-    @GetMapping("/authors")
+    @GetMapping("/api/authors")
     public List<Author> authorsList() {
         return authorService.findAll();
     }

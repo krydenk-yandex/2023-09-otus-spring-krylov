@@ -35,7 +35,7 @@ public class AuthorControllerTest {
     public void shouldReturnBooksList() throws Exception {
         given(authorService.findAll()).willReturn(authors);
 
-        mvc.perform(get("/authors"))
+        mvc.perform(get("/api/authors"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(authors)));
     }

@@ -63,7 +63,7 @@ public class BookControllerTest {
     public void shouldReturnBooksList() throws Exception {
         given(bookService.findAll()).willReturn(booksDtos);
 
-        mvc.perform(get("/books"))
+        mvc.perform(get("/api/books"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(booksDtos)));
 
@@ -76,7 +76,7 @@ public class BookControllerTest {
 
         given(bookService.findById(BOOK_ID)).willReturn(Optional.empty());
 
-        mvc.perform(get("/books/{bookId}", BOOK_ID))
+        mvc.perform(get("/api/books/{bookId}", BOOK_ID))
                 .andExpect(status().isBadRequest());
     }
 
@@ -89,7 +89,7 @@ public class BookControllerTest {
         given(bookService.update(anyLong(), anyString(), anyLong(), any())).willReturn(expectedBook);
         given(bookService.findById(BOOK_ID)).willReturn(Optional.of(expectedBook));
 
-        mvc.perform(post("/books/{bookId}", 1L)
+        mvc.perform(put("/api/books/{bookId}", 1L)
                 .param("title", "A new book name")
                 .param("authorId", "1")
                 .param("genresIds", "1")
@@ -103,7 +103,7 @@ public class BookControllerTest {
     void shouldReturn404WhenBookNotFoundOnAttemptToSave() throws Exception {
         given(bookService.findById(anyLong())).willReturn(Optional.empty());
 
-        mvc.perform(post("/books/{bookId}", 1L))
+        mvc.perform(put("/api/books/{bookId}", 1L))
                 .andExpect(status().isBadRequest());
     }
 
@@ -114,7 +114,7 @@ public class BookControllerTest {
 
         given(bookService.insert(anyString(), anyLong(), any())).willReturn(expectedBook);
 
-        mvc.perform(put("/books")
+        mvc.perform(post("/api/books")
                 .param("title", "A new book")
                 .param("authorId", "1")
                 .param("genresIds", "1")
@@ -128,7 +128,7 @@ public class BookControllerTest {
     void shouldDeleteBookWhenBookFound() throws Exception {
         given(bookService.findById(anyLong())).willReturn(Optional.of(books.get(0)));
 
-        mvc.perform(delete("/books/1"))
+        mvc.perform(delete("/api/books/1"))
                 .andExpect(status().isOk());
     }
 
@@ -137,7 +137,7 @@ public class BookControllerTest {
     void shouldDeleteBookWhenBookNotFound() throws Exception {
         given(bookService.findById(anyLong())).willReturn(Optional.empty());
 
-        mvc.perform(delete("/books/1"))
+        mvc.perform(delete("/api/books/1"))
                 .andExpect(status().isOk());
     }
 }

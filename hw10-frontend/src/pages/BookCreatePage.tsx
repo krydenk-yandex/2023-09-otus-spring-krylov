@@ -1,7 +1,8 @@
 import React, {FormEvent, useCallback, useEffect, useState} from 'react';
 import {Author, BookSaveDto, Genre} from "../types";
 import {useNavigate} from "react-router-dom";
-import {getSelectInputValue, toFormData} from "../utils";
+import {getSelectInputValue} from "../utils";
+import {getAuthors, getGenres, saveNewBook} from "../api";
 
 function BookCreatePage() {
     const navigate = useNavigate();
@@ -18,10 +19,7 @@ function BookCreatePage() {
 
     const onSubmit = useCallback((e: FormEvent) => {
         e.preventDefault();
-        fetch(`/books`, {
-            method: "PUT",
-            body: toFormData(formData)
-        }).then((response) => {
+        saveNewBook(formData).then((response) => {
             if (response.ok) {
                 navigate("/")
             }
@@ -33,10 +31,8 @@ function BookCreatePage() {
 
     useEffect(() => {
         Promise.all([
-            fetch(`/genres`)
-                .then(async response => await response.json()),
-            fetch(`/authors`)
-                .then(async response => await response.json()),
+            getGenres(),
+            getAuthors()
         ]).then(([genres, authors]) => {
             setAuthors(authors);
             setGenres(genres);

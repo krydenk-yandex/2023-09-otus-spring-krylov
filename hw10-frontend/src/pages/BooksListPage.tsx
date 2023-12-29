@@ -1,21 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Book} from "../types";
 import {Link} from "react-router-dom";
+import {deleteBook as deleteBookApi, getBooks} from "../api";
 
 function BooksListPage() {
     const [books, setBooks] = useState<Book[] | null>(null);
 
     useEffect(() => {
-        fetch("/books")
-            .then(async response => {
-                setBooks(await response.json() as Book[])
+        getBooks()
+            .then(books => {
+                setBooks(books as Book[])
             });
     }, [])
 
     const deleteBook = useCallback((id: number) => {
-        fetch(`/books/${id}`, {
-            method: "DELETE"
-        }).then(() => {
+        deleteBookApi(id).then(() => {
             setBooks(books!.filter(b => b.id != id));
         })
     }, [books])

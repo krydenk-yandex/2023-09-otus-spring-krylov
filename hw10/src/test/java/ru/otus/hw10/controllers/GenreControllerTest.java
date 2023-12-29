@@ -28,14 +28,14 @@ public class GenreControllerTest {
     @MockBean
     private GenreService genreService;
 
-    private List<Genre> genres = List.of(new Genre(1, "Genre_1"));
+    private final List<Genre> genres = List.of(new Genre(1, "Genre_1"));
 
     @DisplayName(" должен вернуть список жанров")
     @Test
     public void shouldReturnBooksList() throws Exception {
         given(genreService.findAll()).willReturn(genres);
 
-        mvc.perform(get("/genres"))
+        mvc.perform(get("/api/genres"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(genres)));
     }

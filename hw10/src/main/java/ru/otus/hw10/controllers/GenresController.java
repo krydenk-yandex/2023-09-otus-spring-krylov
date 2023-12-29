@@ -12,7 +12,7 @@ import ru.otus.hw10.services.GenreService;
 public class GenresController {
     private final GenreService genreService;
 
-    @GetMapping("/genres")
+    @GetMapping("/api/genres")
     public List<Genre> genresList() {
         return genreService.findAll();
     }

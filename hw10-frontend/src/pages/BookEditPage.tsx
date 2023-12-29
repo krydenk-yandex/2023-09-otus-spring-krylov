@@ -1,7 +1,8 @@
 import React, {FormEvent, useCallback, useEffect, useState} from 'react';
 import {Author, Book, BookSaveDto, Genre} from "../types";
 import {useNavigate, useParams} from "react-router-dom";
-import {getSelectInputValue, toFormData} from "../utils";
+import {getSelectInputValue} from "../utils";
+import {getAuthors, getBookById, getGenres, updateBook} from "../api";
 
 function BooksEditPage() {
     const [book, setBook] = useState<Book | null>(null);
@@ -21,10 +22,7 @@ function BooksEditPage() {
 
     const onSubmit = useCallback((e: FormEvent) => {
         e.preventDefault();
-        fetch(`/books/${bookId}`, {
-            method: "POST",
-            body: toFormData(formData)
-        }).then((response) => {
+        updateBook(Number(bookId!), formData).then((response) => {
             if (response.ok) {
                 navigate("/")
             }
@@ -43,12 +41,9 @@ function BooksEditPage() {
 
     useEffect(() => {
         Promise.all([
-            fetch(`/books/${bookId}`)
-                .then(async response => await response.json()),
-            fetch(`/genres`)
-                .then(async response => await response.json()),
-            fetch(`/authors`)
-                .then(async response => await response.json()),
+            getBookById(Number(bookId!)),
+            getGenres(),
+            getAuthors(),
         ]).then(([book, genres, authors]) => {
             setBook(book);
             setAuthors(authors);

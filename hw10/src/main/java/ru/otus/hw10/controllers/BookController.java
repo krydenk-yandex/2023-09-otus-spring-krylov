@@ -24,17 +24,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class BookController {
     private final BookService bookService;
 
-    @GetMapping("/")
-    public String index() {
-        return "redirect:/books";
-    }
-
-    @GetMapping("/books")
+    @GetMapping("/api/books")
     public List<BookDto> booksList() {
         return bookService.findAll();
     }
 
-    @GetMapping("/books/{bookId}")
+    @GetMapping("/api/books/{bookId}")
     public Book getBookById(@PathVariable Long bookId) {
         Optional<Book> book = bookService.findById(bookId);
 
@@ -45,7 +40,7 @@ public class BookController {
         return book.get();
     }
 
-    @PostMapping("/books/{bookId}")
+    @PutMapping("/api/books/{bookId}")
     public Book editBook(
             @PathVariable Long bookId,
             @Valid BookSaveDto dto
@@ -59,12 +54,12 @@ public class BookController {
         return bookService.update(bookId, dto.getTitle(), dto.getAuthorId(), dto.getGenresIds());
     }
 
-    @PutMapping("/books")
+    @PostMapping("/api/books")
     public Book createBook(@Valid BookSaveDto dto) {
         return bookService.insert(dto.getTitle(), dto.getAuthorId(), dto.getGenresIds());
     }
 
-    @DeleteMapping("/books/{bookId}")
+    @DeleteMapping("/api/books/{bookId}")
     public void deleteBook(@PathVariable Long bookId) {
         if (bookService.existById(bookId)) {
             bookService.deleteById(bookId);
