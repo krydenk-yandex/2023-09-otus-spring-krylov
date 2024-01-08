@@ -1,0 +1,6 @@
+docker run --rm --name pg-docker \
+-e POSTGRES_PASSWORD=pass \
+-e POSTGRES_USER=dbuser \
+-e POSTGRES_DB=library \
+-p 5430:5432 \
+postgres:13
