@@ -1,10 +1,5 @@
 package ru.otus.hw11.controllers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,11 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.otus.hw11.converters.AuthorConverter;
-import ru.otus.hw11.converters.GenreConverter;
-import ru.otus.hw11.dto.AuthorWithBookIdDto;
 import ru.otus.hw11.dto.BookSaveDto;
-import ru.otus.hw11.dto.GenreWithBookIdDto;
+import ru.otus.hw11.models.Author;
 import ru.otus.hw11.models.Book;
 import ru.otus.hw11.models.Genre;
 import ru.otus.hw11.repositories.AuthorRepository;
@@ -35,10 +27,6 @@ public class BookController {
 
     private final GenreRepository genreRepository;
 
-    private final AuthorConverter authorConverter;
-
-    private final GenreConverter genreConverter;
-
     @GetMapping("/api/books/{bookId}")
     public Mono<Book> getBookById(@PathVariable Long bookId) {
         return findBookById(bookId);
@@ -46,28 +34,24 @@ public class BookController {
 
     @GetMapping("/api/books")
     public Flux<Book> getBooks() {
-        var booksFlux = bookRepository.findAll();
-        var genresMapMono = getGenresByBookIdMap();
-        var authorsMapMono = getAuthorsByBookIdMap();
+        var booksWithAuthorIdAndGenresIds = bookRepository.findAllWithAuthorIdAndGenresIds().collectList();
+        var genresByIdMap = genreRepository.findAll().collectMap(Genre::getId);
+        var authorsByIdMap = authorRepository.findAll().collectMap(Author::getId);
 
-        return booksFlux
-                .flatMap(book -> Mono.just(book).zipWith(authorsMapMono))
-                .map(tuple -> {
-                    var book = tuple.getT1();
-                    var authorsMap = tuple.getT2();
-                    book.setAuthor(authorConverter.toEntity(
-                            authorsMap.get(book.getId())
-                    ));
-                    return book;
-                })
-                .flatMap(book -> Mono.just(book).zipWith(genresMapMono))
-                .map(tuple -> {
-                    var book = tuple.getT1();
-                    var genresMap = tuple.getT2();
-                    book.setGenres(
-                            genresMap.get(book.getId()).stream().map(genreConverter::toEntity).toList()
+        return Mono.zip(booksWithAuthorIdAndGenresIds, genresByIdMap, authorsByIdMap)
+                .flatMapMany(tuple3 -> {
+                    var booksWithRelationsIds = tuple3.getT1();
+                    var genresMap = tuple3.getT2();
+                    var authorsMap = tuple3.getT3();
+
+                    return Flux.fromStream(
+                            booksWithRelationsIds.stream().map(bookWithRelationsIds -> new Book(
+                                bookWithRelationsIds.getId(),
+                                bookWithRelationsIds.getTitle(),
+                                authorsMap.get(bookWithRelationsIds.getAuthorId()),
+                                bookWithRelationsIds.getGenresIds().stream().map(genresMap::get).toList()
+                            ))
                     );
-                    return book;
                 });
     }
 
@@ -113,53 +97,25 @@ public class BookController {
                 });
     }
 
-    private Mono<Map<Long, AuthorWithBookIdDto>> getAuthorsByBookIdMap() {
-        return authorRepository.findAllWithBookId()
-                .collect(
-                        HashMap::new,
-                        (map, author) -> map.put(author.getBookId(), author)
-                );
-    }
-
-    private Mono<Map<Long, List<GenreWithBookIdDto>>> getGenresByBookIdMap() {
-        return genreRepository.findAllWithBookId()
-                .collect(
-                        HashMap::new,
-                        (map, genre) -> {
-                            var genres = map.get(genre.getBookId());
-
-                            if (genres == null) {
-                                genres = new ArrayList<>();
-                            }
-                            genres.add(genre);
-                            map.put(genre.getBookId(), genres);
-                        }
-                );
-    }
-
     private Mono<Book> findBookById(Long bookId) {
-        return genreRepository.findByBookId(bookId)
-                .flatMap(genre -> Mono.just(genre).zipWith(bookRepository.findById(bookId)))
-                .collect(Book::new, (book, tuple) -> {
-                    if (book.getId() == 0) {
-                        book.setId(tuple.getT2().getId());
-                        book.setTitle(tuple.getT2().getTitle());
-                    }
-
-                    var genre = tuple.getT1();
-                    if (book.getGenres() == null) {
-                        book.setGenres(List.of(genre));
-                    } else {
-                        var newGenres = new ArrayList<Genre>();
-                        newGenres.add(genre);
-                        newGenres.addAll(book.getGenres());
-                        book.setGenres(newGenres);
-                    }
+        return bookRepository.findByIdWithAuthorIdAndGenresIds(bookId)
+                .flatMap(b -> Mono.just(b).zipWith(
+                        authorRepository.findById(b.getAuthorId())
+                ))
+                .flatMap(tuple2 -> {
+                    var book = tuple2.getT1();
+                    var author = tuple2.getT2();
+                    return Mono.zip(
+                            Mono.just(book),
+                            Mono.just(author),
+                            genreRepository.findAllById(book.getGenresIds()).collectList()
+                    );
                 })
-                .zipWith(authorRepository.findByBookId(bookId))
-                .map(tuple -> {
-                    tuple.getT1().setAuthor(tuple.getT2());
-                    return tuple.getT1();
-                });
+                .map(tuple3 -> new Book(
+                        tuple3.getT1().getId(),
+                        tuple3.getT1().getTitle(),
+                        tuple3.getT2(),
+                        tuple3.getT3()
+                ));
     }
 }

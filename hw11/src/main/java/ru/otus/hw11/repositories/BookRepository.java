@@ -6,10 +6,30 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.otus.hw11.dto.BookWithAuthorIdAndGenresIds;
 import ru.otus.hw11.models.Book;
 
 public interface BookRepository extends ReactiveCrudRepository<Book, Long> {
-    Flux<Book> findAll();
+    @Query("""
+        with genres_ids_by_book as (
+            select book_id, array_agg(genre_id) as genres_ids
+            from books_genres
+            group by book_id
+        )
+        select b.id, b.title, b.author_id, bg.genres_ids
+        from books b
+        join genres_ids_by_book bg on bg.book_id = b.id
+    """)
+    Flux<BookWithAuthorIdAndGenresIds> findAllWithAuthorIdAndGenresIds();
+
+    @Query("""
+        select b.id, b.title, b.author_id, array_agg(genre_id) as genres_ids
+        from books b
+        join books_genres bg on bg.book_id = b.id and bg.book_id = :bookId
+        where b.id = :bookId
+        group by b.id, b.title, b.author_id
+    """)
+    Mono<BookWithAuthorIdAndGenresIds> findByIdWithAuthorIdAndGenresIds(@Param("bookId") Long bookId);
 
     @Modifying
     @Query("update books set author_id = :authorId, title = :title where id = :bookId")
