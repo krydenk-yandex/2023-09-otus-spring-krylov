@@ -60,15 +60,11 @@ public class BookController {
             @PathVariable Long bookId,
             BookSaveDto dto
     ) {
-        Flux<Void> genreUpdateFlux =
-                bookRepository.deleteBookGenres(bookId)
-                        .thenMany(Flux.merge(
-                                dto.getGenresIds().stream().map(
-                                        genreId -> bookRepository.insertBookGenre(bookId, genreId)
-                                ).toList()
-                        ));
+        Flux<Void> genreSaveFlux = Flux.fromIterable(dto.getGenresIds())
+                .flatMap(genreId -> bookRepository.insertBookGenre(bookId, genreId));
 
-        return genreUpdateFlux
+        return bookRepository.deleteBookGenres(bookId)
+                .thenMany(genreSaveFlux)
                 .then(bookRepository.update(bookId, dto.getAuthorId(), dto.getTitle()))
                 .then(findBookById(bookId));
 
@@ -79,9 +75,9 @@ public class BookController {
             @Valid BookSaveDto dto
     ) {
         return bookRepository.insert(dto.getAuthorId(), dto.getTitle())
-                .flatMap(bookId -> Flux.merge(dto.getGenresIds().stream().map(
-                        genreId -> bookRepository.insertBookGenre(bookId, genreId)
-                ).toList()).then(Mono.just(bookId)))
+                .flatMap(bookId -> Flux.fromIterable(dto.getGenresIds())
+                        .flatMap(genreId -> bookRepository.insertBookGenre(bookId, genreId))
+                        .then(Mono.just(bookId)))
                 .flatMap(this::findBookById);
     }
 
@@ -99,18 +95,11 @@ public class BookController {
 
     private Mono<Book> findBookById(Long bookId) {
         return bookRepository.findByIdWithAuthorIdAndGenresIds(bookId)
-                .flatMap(b -> Mono.just(b).zipWith(
-                        authorRepository.findById(b.getAuthorId())
+                .flatMap(b -> Mono.zip(
+                        Mono.just(b),
+                        authorRepository.findById(b.getAuthorId()),
+                        genreRepository.findAllById(b.getGenresIds()).collectList()
                 ))
-                .flatMap(tuple2 -> {
-                    var book = tuple2.getT1();
-                    var author = tuple2.getT2();
-                    return Mono.zip(
-                            Mono.just(book),
-                            Mono.just(author),
-                            genreRepository.findAllById(book.getGenresIds()).collectList()
-                    );
-                })
                 .map(tuple3 -> new Book(
                         tuple3.getT1().getId(),
                         tuple3.getT1().getTitle(),
