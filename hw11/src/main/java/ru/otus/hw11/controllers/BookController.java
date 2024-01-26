@@ -34,23 +34,17 @@ public class BookController {
 
     @GetMapping("/api/books")
     public Flux<Book> getBooks() {
-        var booksWithAuthorIdAndGenresIds = bookRepository.findAllWithAuthorIdAndGenresIds().collectList();
         var genresByIdMap = genreRepository.findAll().collectMap(Genre::getId);
         var authorsByIdMap = authorRepository.findAll().collectMap(Author::getId);
+        var booksWithAuthorIdAndGenresIds = bookRepository.findAllWithAuthorIdAndGenresIds();
 
-        return Mono.zip(booksWithAuthorIdAndGenresIds, genresByIdMap, authorsByIdMap)
-                .flatMapMany(tuple3 -> {
-                    var booksWithRelationsIds = tuple3.getT1();
-                    var genresMap = tuple3.getT2();
-                    var authorsMap = tuple3.getT3();
-
-                    return Flux.fromStream(
-                            booksWithRelationsIds.stream().map(bookWithRelationsIds -> new Book(
-                                bookWithRelationsIds.getId(),
-                                bookWithRelationsIds.getTitle(),
-                                authorsMap.get(bookWithRelationsIds.getAuthorId()),
-                                bookWithRelationsIds.getGenresIds().stream().map(genresMap::get).toList()
-                            ))
+        return Mono.zip(genresByIdMap, authorsByIdMap)
+                .flatMapMany(t2 -> {
+                    var genresMap = t2.getT1();
+                    var authorsMap = t2.getT2();
+                    return booksWithAuthorIdAndGenresIds.map(book ->
+                            new Book(book.getId(), book.getTitle(), authorsMap.get(book.getAuthorId()),
+                                    book.getGenresIds().stream().map(genresMap::get).toList())
                     );
                 });
     }

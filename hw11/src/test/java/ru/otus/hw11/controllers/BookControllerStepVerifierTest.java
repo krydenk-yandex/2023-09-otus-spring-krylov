@@ -4,26 +4,46 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.otus.hw11.dto.BookWithAuthorIdAndGenresIds;
 import ru.otus.hw11.models.Author;
 import ru.otus.hw11.models.Book;
 import ru.otus.hw11.models.Genre;
+import ru.otus.hw11.repositories.AuthorRepository;
+import ru.otus.hw11.repositories.BookRepository;
+import ru.otus.hw11.repositories.GenreRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyIterable;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@WebFluxTest(controllers = BookController.class)
 @DisplayName("MVC контроллер для работы с книгами ")
 public class BookControllerStepVerifierTest {
-    @LocalServerPort
-    private int port;
+    @MockBean
+    BookRepository bookRepository;
+
+    @MockBean
+    AuthorRepository authorRepository;
+
+    @MockBean
+    GenreRepository genreRepository;
+
+    @Autowired
+    private WebTestClient client;
 
     private static List<Author> getDbAuthors() {
         return IntStream.range(1, 4).boxed()
@@ -47,42 +67,36 @@ public class BookControllerStepVerifierTest {
                 .toList();
     }
 
+    private static List<BookWithAuthorIdAndGenresIds> getBooksWithAuthorIdAndGenresIds() {
+        return getDbBooks().stream()
+                .map(book -> new BookWithAuthorIdAndGenresIds(
+                        book.getId(),
+                        book.getTitle(),
+                        book.getAuthor().getId(),
+                        book.getGenres().stream().map(Genre::getId).toList()
+                ))
+                .toList();
+    }
+
     private static List<Book> getDbBooks() {
         var dbAuthors = getDbAuthors();
         var dbGenres = getDbGenres();
         return getDbBooks(dbAuthors, dbGenres);
     }
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    @DisplayName(" должен вернуть книгу по id")
-    @Test
-    public void shouldReturnBookById() {
-        var client = WebClient.create(String.format("http://localhost:%d", port));
-        final var BOOK_ID = 1;
-
-        var result = client.get().uri(String.format("/api/books/%d", BOOK_ID))
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToMono(Book.class);
-
-        var expectedBook = getDbBooks().stream().filter(b -> b.getId() == BOOK_ID).findFirst().get();
-
-        StepVerifier.create(result)
-                .assertNext(book -> assertThat(book).usingRecursiveComparison().isEqualTo(expectedBook))
-                .verifyComplete();
-    }
-
-
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @DisplayName(" должен вернуть список всех книг")
     @Test
     public void shouldReturnAllBooksList() {
-        var client = WebClient.create(String.format("http://localhost:%d", port));
+        given(bookRepository.findAllWithAuthorIdAndGenresIds()).willReturn(Flux.fromIterable(getBooksWithAuthorIdAndGenresIds()));
+        given(authorRepository.findAll()).willReturn(Flux.fromIterable(getDbAuthors()));
+        given(genreRepository.findAll()).willReturn(Flux.fromIterable(getDbGenres()));
 
         var result = client.get().uri("/api/books")
                 .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .bodyToFlux(Book.class)
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(Book.class)
+                .getResponseBody()
                 .collectList();
 
         StepVerifier.create(result)
@@ -90,18 +104,46 @@ public class BookControllerStepVerifierTest {
                 .verifyComplete();
     }
 
+    @DisplayName(" должен вернуть книгу по id")
+    @Test
+    public void shouldReturnBookById() {
+        final var bookId = 1;
+
+        var expectedBookDto = getBooksWithAuthorIdAndGenresIds().stream().filter(book -> book.getId() == bookId)
+                .findFirst().get();
+        var expectedBook = getDbBooks().stream().filter(book -> book.getId() == expectedBookDto.getId())
+                .findFirst().get();
+
+        given(bookRepository.findByIdWithAuthorIdAndGenresIds(anyLong())).willReturn(Mono.just(expectedBookDto));
+        given(authorRepository.findById(anyLong())).willReturn(Mono.just(expectedBook.getAuthor()));
+        given(genreRepository.findAllById(anyIterable())).willReturn(Flux.fromIterable(expectedBook.getGenres()));
+
+        var result = client.get().uri(String.format("/api/books/%d", bookId))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(Book.class)
+                .getResponseBody();
+
+        StepVerifier.create(result)
+                .assertNext(book -> assertThat(book).usingRecursiveComparison().isEqualTo(expectedBook))
+                .verifyComplete();
+    }
+
     @DisplayName(" должен удалить книгу, если книга существует")
     @Test
     void shouldDeleteBookWhenBookFound() {
-        var client = WebClient.create(String.format("http://localhost:%d", port));
+        given(bookRepository.existsById(anyLong())).willReturn(Mono.just(true));
+        given(bookRepository.deleteById(anyLong())).willReturn(Mono.empty());
 
         var result = client.delete().uri("/api/books/1")
                 .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .toBodilessEntity();
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(Void.class)
+                .getResponseBody();
 
         StepVerifier.create(result)
-                .expectNextCount(1)
                 .expectComplete()
                 .verifyThenAssertThat()
                 .hasNotDroppedErrors();
@@ -110,94 +152,117 @@ public class BookControllerStepVerifierTest {
     @DisplayName(" должен вернуть корректный ответ при удалении книги, если книга не существует")
     @Test
     void shouldDeleteBookWhenBookNotFound() {
-        var client = WebClient.create(String.format("http://localhost:%d", port));
+        given(bookRepository.existsById(anyLong())).willReturn(Mono.just(false));
 
-        var result = client.delete().uri("/api/books/25555")
+        var result = client.delete().uri("/api/books/1")
                 .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .toBodilessEntity();
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(Void.class)
+                .getResponseBody();
 
         StepVerifier.create(result)
-                .expectNextCount(1)
                 .expectComplete()
                 .verifyThenAssertThat()
                 .hasNotDroppedErrors();
     }
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @DisplayName(" должен сохранить обновленную книгу")
     @Test
     void shouldSaveExistedBook() {
-        var client = WebClient.create(String.format("http://localhost:%d", port));
+        final var bookId = 1L;
+        final var expectedTitle = "BookTitle_UPDATED";
+        final var expectedGenresIds = List.of(4L, 5L);
+        final var expectedAuthorId = 2L;
+        final var expectedBook = new Book(
+                bookId,
+                expectedTitle,
+                getDbAuthors().stream().filter(author -> expectedAuthorId == author.getId()).findFirst().get(),
+                getDbGenres().stream().filter(genre -> expectedGenresIds.contains(genre.getId())).toList()
+        );
+        final var expectedBookDto = new BookWithAuthorIdAndGenresIds(
+                expectedBook.getId(),
+                expectedBook.getTitle(),
+                expectedBook.getAuthor().getId(),
+                expectedBook.getGenres().stream().map(Genre::getId).toList()
+        );
 
-        final var BOOK_ID = 1L;
-        final var EXPECTED_TITLE = "BookTitle_UPDATED";
-        final var EXPECTED_GENRES_IDS = List.of(4L, 5L);
-        final var EXPECTED_AUTHOR_ID = 2L;
+        given(bookRepository.insertBookGenre(anyLong(), anyLong())).willReturn(Mono.empty());
+        given(bookRepository.deleteBookGenres(anyLong())).willReturn(Mono.empty());
+        given(bookRepository.update(anyLong(), anyLong(), anyString())).willReturn(Mono.empty());
+        given(bookRepository.findByIdWithAuthorIdAndGenresIds(anyLong())).willReturn(Mono.just(expectedBookDto));
+        given(authorRepository.findById(anyLong())).willReturn(Mono.just(expectedBook.getAuthor()));
+        given(genreRepository.findAllById(anyIterable())).willReturn(Flux.fromIterable(expectedBook.getGenres()));
 
-        var result = client.put().uri(String.format("/api/books/%d", BOOK_ID))
+        var result = client.put().uri(String.format("/api/books/%d", bookId))
                 .accept(MediaType.APPLICATION_JSON)
                 .body(
-                        BodyInserters.fromFormData("title", EXPECTED_TITLE)
-                                .with("authorId", String.valueOf(EXPECTED_AUTHOR_ID))
-                                .with("genresIds", EXPECTED_GENRES_IDS.stream().map(Object::toString)
+                        BodyInserters.fromFormData("title", expectedTitle)
+                                .with("authorId", String.valueOf(expectedAuthorId))
+                                .with("genresIds", expectedGenresIds.stream().map(Object::toString)
                                         .collect(Collectors.joining(", "))
                                 )
                 )
-                .retrieve()
-                .bodyToMono(Book.class);
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(Book.class)
+                .getResponseBody();
 
         StepVerifier.create(result)
                 .assertNext(actualBook -> assertThat(actualBook)
                         .isNotNull()
                         .usingRecursiveComparison()
                         .ignoringCollectionOrder()
-                        .isEqualTo(new Book(
-                                BOOK_ID,
-                                EXPECTED_TITLE,
-                                getDbAuthors().stream().filter(a -> EXPECTED_AUTHOR_ID == a.getId()).findFirst().get(),
-                                getDbGenres().stream().filter(g -> EXPECTED_GENRES_IDS.contains(g.getId())).toList()
-                        )))
+                        .isEqualTo(expectedBook)
+                )
                 .verifyComplete();
     }
 
     @DisplayName(" должен сохранить новую книгу")
     @Test
     void shouldSaveNewBook() {
-        var client = WebClient.create(String.format("http://localhost:%d", port));
+        final var expectedTitle = "BookTitle_UPDATED";
+        final var expectedGenresIds = List.of(4L, 5L);
+        final var expectedAuthorId = 2L;
+        final var expectedBook = new Book(
+                1L,
+                expectedTitle,
+                getDbAuthors().stream().filter(author -> expectedAuthorId == author.getId()).findFirst().get(),
+                getDbGenres().stream().filter(genre -> expectedGenresIds.contains(genre.getId())).toList()
+        );
+        final var expectedBookDto = new BookWithAuthorIdAndGenresIds(
+                expectedBook.getId(),
+                expectedBook.getTitle(),
+                expectedBook.getAuthor().getId(),
+                expectedBook.getGenres().stream().map(Genre::getId).toList()
+        );
 
-        final var EXPECTED_TITLE = "BookTitle_UPDATED";
-        final var EXPECTED_GENRES_IDS = List.of(4L, 5L);
-        final var EXPECTED_AUTHOR_ID = 2L;
+        given(bookRepository.insertBookGenre(anyLong(), anyLong())).willReturn(Mono.empty());
+        given(bookRepository.deleteBookGenres(anyLong())).willReturn(Mono.empty());
+        given(bookRepository.insert(anyLong(), anyString())).willReturn(Mono.just(1L));
+        given(bookRepository.findByIdWithAuthorIdAndGenresIds(anyLong())).willReturn(Mono.just(expectedBookDto));
+        given(authorRepository.findById(anyLong())).willReturn(Mono.just(expectedBook.getAuthor()));
+        given(genreRepository.findAllById(anyIterable())).willReturn(Flux.fromIterable(expectedBook.getGenres()));
 
         var result = client.post().uri("/api/books")
                 .accept(MediaType.APPLICATION_JSON)
                 .body(
-                        BodyInserters.fromFormData("title", EXPECTED_TITLE)
-                                .with("authorId", String.valueOf(EXPECTED_AUTHOR_ID))
-                                .with("genresIds", EXPECTED_GENRES_IDS.stream().map(Object::toString)
+                        BodyInserters.fromFormData("title", expectedTitle)
+                                .with("authorId", String.valueOf(expectedAuthorId))
+                                .with("genresIds", expectedGenresIds.stream().map(Object::toString)
                                         .collect(Collectors.joining(", "))
                                 )
                 )
-                .retrieve()
-                .bodyToMono(Book.class);
-
+                .exchange()
+                .expectStatus().isOk()
+                .returnResult(Book.class)
+                .getResponseBody();
 
         StepVerifier.create(result)
-                .assertNext(actualBook -> {
-                    assertThat(actualBook).isNotNull()
-                            .usingRecursiveComparison()
-                            .ignoringCollectionOrder()
-                            .ignoringFields("id")
-                            .isEqualTo(new Book(
-                                    0L,
-                                    EXPECTED_TITLE,
-                                    getDbAuthors().stream().filter(a -> EXPECTED_AUTHOR_ID == a.getId()).findFirst().get(),
-                                    getDbGenres().stream().filter(g -> EXPECTED_GENRES_IDS.contains(g.getId())).toList()
-                            ));
-
-                    assertThat(actualBook.getId()).isGreaterThan(0);
-                })
+                .assertNext(actualBook -> assertThat(actualBook).isNotNull()
+                        .usingRecursiveComparison()
+                        .ignoringCollectionOrder()
+                        .isEqualTo(expectedBook))
                 .verifyComplete();
     }
 }
