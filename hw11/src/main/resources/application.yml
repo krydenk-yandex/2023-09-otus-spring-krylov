@@ -1,0 +1,15 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5430/library
+    username: dbuser
+    password: pass
+
+  liquibase:
+    enabled: true
+    url: jdbc:postgresql://localhost:5430/library
+    user: dbuser
+    password: pass
+
+logging:
+  level:
+    org.springframework.jdbc.core.JdbcTemplate: TRACE
