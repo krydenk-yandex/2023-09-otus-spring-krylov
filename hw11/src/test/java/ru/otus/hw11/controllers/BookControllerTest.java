@@ -13,6 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.otus.hw11.models.Author;
 import ru.otus.hw11.models.Book;
 import ru.otus.hw11.models.Genre;
@@ -21,7 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DisplayName("MVC контроллер для работы с книгами ")
+@Testcontainers
 public class BookControllerTest {
+    @Container
+    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:13")
+            .withDatabaseName("library")
+            .withUsername("dbuser")
+            .withPassword("pass")
+            .withExposedPorts(5432);
+
     @LocalServerPort
     private int port;
 
