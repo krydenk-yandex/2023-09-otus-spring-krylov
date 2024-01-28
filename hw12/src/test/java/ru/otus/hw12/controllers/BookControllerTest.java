@@ -47,9 +47,9 @@ public class BookControllerTest {
     @MockBean
     private BookConverter bookConverter;
 
-    private List<Author> authors = List.of(new Author(1, "Author_1"));
-    private List<Genre> genres = List.of(new Genre(1, "Genre_1"));
-    private List<Book> books = List.of(
+    private final List<Author> authors = List.of(new Author(1, "Author_1"));
+    private final List<Genre> genres = List.of(new Genre(1, "Genre_1"));
+    private final List<Book> books = List.of(
             new Book(
                     1,
                     "Book_1",
@@ -58,7 +58,7 @@ public class BookControllerTest {
             )
     );
 
-    private List<BookDto> booksDtos = books.stream().map(b -> new BookDto(
+    private final List<BookDto> booksDtos = books.stream().map(b -> new BookDto(
             b.getId(),
             b.getTitle(),
             new AuthorDto(b.getAuthor().getId(), b.getAuthor().getFullName()),
@@ -84,14 +84,14 @@ public class BookControllerTest {
     @DisplayName(" должен вернуть страницу редактирования книги")
     @Test
     public void shouldReturnBookEditPage() throws Exception {
-        final var BOOK_ID = 1L;
+        final var bookId = 1L;
 
-        given(bookService.findById(BOOK_ID)).willReturn(Optional.of(books.get(0)));
+        given(bookService.findById(bookId)).willReturn(Optional.of(books.get(0)));
         given(bookConverter.toSaveDto(any())).willReturn(bookSaveDtos.get(0));
         given(genreService.findAll()).willReturn(genres);
         given(authorService.findAll()).willReturn(authors);
 
-        mvc.perform(get("/books/edit/{bookId}", BOOK_ID))
+        mvc.perform(get("/books/edit/{bookId}", bookId))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("book", bookSaveDtos.get(0)))
                 .andExpect(model().attribute("authors", authors))
@@ -101,23 +101,23 @@ public class BookControllerTest {
     @DisplayName(" должен вернуть ошибку 404 при открытии страницы, если книга не найдена")
     @Test
     public void shouldReturn404WhenBookNotFoundOnOpeningEditPage() throws Exception {
-        final var BOOK_ID = 1L;
+        final var bookId = 1L;
 
-        given(bookService.findById(BOOK_ID)).willReturn(Optional.empty());
+        given(bookService.findById(bookId)).willReturn(Optional.empty());
         given(genreService.findAll()).willReturn(genres);
         given(authorService.findAll()).willReturn(authors);
 
-        mvc.perform(get("/books/edit/{bookId}", BOOK_ID))
+        mvc.perform(get("/books/edit/{bookId}", bookId))
                 .andExpect(status().isBadRequest());
     }
 
     @DisplayName(" должен вернуть сохранить обновленную книгу")
     @Test
     void shouldSaveExistedBook() throws Exception {
-        final var BOOK_ID = 1L;
+        final var bookId = 1L;
 
         given(bookService.update(anyLong(), anyString(), anyLong(), any())).willReturn(books.get(0));
-        given(bookService.findById(BOOK_ID)).willReturn(Optional.of(books.get(0)));
+        given(bookService.findById(bookId)).willReturn(Optional.of(books.get(0)));
 
         mvc.perform(post("/books/edit/{bookId}", 1L)
                 .param("title", "A new book name")
