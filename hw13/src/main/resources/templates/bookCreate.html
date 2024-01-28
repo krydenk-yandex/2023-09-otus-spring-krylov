@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book create</title>
+  <link th:href="@{/static/main.css}" rel="stylesheet" />
+</head>
+
+<body>
+  <form id="edit-form" class="form" action="bookCreate.html" th:method="post" th:action="@{/books/create}" th:object="${book}">
+    <h1>Создание книги</h1>
+
+    <div class="form-field">
+      <label for="name-input">Название:</label>
+      <input id="name-input" name="title" type="text"/>
+      <div class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Название заполнено неверно</div>
+    </div>
+
+    <div class="form-field">
+      <label for="author-input">Автор:</label>
+      <select id="author-input" name="authorId">
+        <option th:each="author : ${authors}"
+                th:value="${author.id}" value="1">
+          <span th:text="${author.fullName}">Автор</span>
+        </option>
+      </select>
+      <div class="form-error" th:if="${#fields.hasErrors('authorId')}" th:errors="*{authorId}">Автор заполнен неверно</div>
+    </div>
+
+    <div class="form-field">
+      <label for="genres-input">Жанры:</label>
+      <select id="genres-input" name="genresIds" multiple>
+        <option th:each="genre : ${genres}"
+                th:value="${genre.id}" value="1">
+          <span th:text="${genre.name}">Жанр</span>
+        </option>
+      </select>
+      <div class="form-error" th:if="${#fields.hasErrors('genresIds')}" th:errors="*{genresIds}">Жанры заполнены неверно</div>
+    </div>
+
+    <div class="form-control">
+      <button type="submit">Сохранить</button>
+      <a href="booksList.html" th:href="@{/books}"><button type="button">Отмена</button></a>
+    </div>
+  </form>
+</body>
+</html>

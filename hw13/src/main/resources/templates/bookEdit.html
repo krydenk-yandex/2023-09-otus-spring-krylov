@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book edit</title>
+  <link th:href="@{/static/main.css}" rel="stylesheet" />
+</head>
+
+<body>
+  <form id="edit-form" class="form" action="bookEdit.html" th:method="post" th:action="@{/books/edit/{id}(id=${bookId})}" th:object="${book}">
+    <h1>Редактирование книги #<span th:text="${bookId}">1</span></h1>
+
+    <div class="form-field">
+      <label for="id-input">ID:</label>
+      <input id="id-input" disabled type="text" readonly="readonly" value="1" th:value="${bookId}"/>
+    </div>
+
+    <div class="form-field">
+      <label for="name-input">Название:</label>
+      <input id="name-input" name="title" type="text" value="John Doe" th:value="*{title}"/>
+      <div class="form-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Название заполнено неверно</div>
+    </div>
+
+    <div class="form-field">
+      <label for="author-input">Автор:</label>
+      <select id="author-input" name="authorId">
+        <option th:each="author : ${authors}" th:selected="${author.id == book.authorId}"
+                th:value="${author.id}" value="1">
+          <span th:text="${author.fullName}">Автор</span>
+          <div class="form-error" th:if="${#fields.hasErrors('authorId')}" th:errors="*{authorId}">Автор заполнен неверно</div>
+        </option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label for="genres-input">Жанры:</label>
+      <select id="genres-input" name="genresIds" multiple>
+        <option th:each="genre : ${genres}" th:selected="${book.genresIds.contains(genre.id)}"
+                th:value="${genre.id}" value="1">
+          <span th:text="${genre.name}">Жанр</span>
+        </option>
+      </select>
+      <div class="form-error" th:if="${#fields.hasErrors('genresIds')}" th:errors="*{genresIds}">Жанры заполнены неверно</div>
+    </div>
+
+    <div class="form-control">
+      <button type="submit">Сохранить</button>
+      <a href="booksList.html" th:href="@{/books}"><button type="button">Отмена</button></a>
+    </div>
+  </form>
+  <form id="delete-form" class="form" action="bookEdit.html"
+        th:method="post" th:action="@{/books/delete/{id}(id=${bookId})}">
+    <button type="submit" class="book-delete-button">Удалить</button>
+  </form>
+</body>
+</html>
