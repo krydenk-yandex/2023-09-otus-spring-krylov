@@ -8,6 +8,6 @@ insert into users(username, password, enabled)
 values ('u', '{bcrypt}$2y$10$.9pN4cHZrL37f7oynFDHw.p5GmpKX9pUJQYdY4FEXeBkOPDYpxUtW', true);
 -- plain pass - 1
 
-insert into authorities(username, authority)
-values ('a', 'ROLE_ADMIN');
-values ('u', 'ROLE_USER');
+insert into authorities(user_id, authority)
+values (1, 'ROLE_ADMIN');
+values (2, 'ROLE_USER');
