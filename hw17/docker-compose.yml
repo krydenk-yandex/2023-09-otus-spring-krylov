@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+      - "8081:8081"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/library
       - SPRING_DATASOURCE_USERNAME=user
@@ -16,7 +17,7 @@ services:
       dockerfile: Dockerfile-frontend
     environment:
       - PORT=8081
-    network_mode: host
+    network_mode: service:app
   postgres:
     image: "postgres:13"
     ports:
