@@ -23,7 +23,6 @@ spring:
     enabled: true
 
 jwt:
-  # TODO move to compose
   keys:
     private: classpath:app.key
     public: classpath:app.pub

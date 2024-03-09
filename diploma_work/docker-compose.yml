@@ -4,22 +4,21 @@ services:
     build:
       context: ./library
     ports:
-      - "8081:8080"
+      - "8081:8081"
+      - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5433/library
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-library:5432/library
       - SPRING_DATASOURCE_USERNAME=library_user
       - SPRING_DATASOURCE_PASSWORD=library_pass
-
-  # TODO port and users url from configuration
-  # TODO keys from configuration for users
+      - SERVICES_USERS_URL=http://app-users:8082
 
   app-users:
     build:
       context: ./users
     ports:
-      - "8082:8080"
+      - "8082:8082"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5434/users
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-users:5432/users
       - SPRING_DATASOURCE_USERNAME=users_user
       - SPRING_DATASOURCE_PASSWORD=users_pass
 
@@ -28,9 +27,9 @@ services:
       context: ./frontend
     environment:
       - PORT=8080
-    network_mode: host
+    network_mode: service:app-library
 
-  postgres_library:
+  postgres-library:
     image: "postgres:13"
     ports:
       - "5433:5432"
@@ -39,7 +38,7 @@ services:
       - POSTGRES_PASSWORD=library_pass
       - POSTGRES_DB=library
 
-  postgres_users:
+  postgres-users:
     image: "postgres:13"
     ports:
       - "5434:5432"

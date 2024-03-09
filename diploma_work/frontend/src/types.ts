@@ -1,3 +1,14 @@
+export type User = {
+    id: number,
+    username: string,
+    authorities: string[]
+}
+
+export type UserAuthDto = {
+    username: string,
+    password: string,
+}
+
 export type Book = {
     id: number,
     title: string,
