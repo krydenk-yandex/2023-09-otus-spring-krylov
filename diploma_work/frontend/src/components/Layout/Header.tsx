@@ -9,7 +9,10 @@ type Props = {
 export const Header: FC<Props> = ({user}) => {
     return (
         <div className={css.appHeader}>
-            <div className={css.appHeaderLeft}>
+            <div className={css.appHeaderLeft} onClick={() => {
+                // eslint-disable-next-line no-restricted-globals
+                location.href = "/";
+            }}>
                 <img
                     className={css.appHeaderImage}
                     src={'/logo.png'}

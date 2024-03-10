@@ -1,8 +1,8 @@
 import { FunctionComponent, PropsWithChildren } from 'react';
 import {Header} from "./Header";
 
-import css from "./Layout.module.css";
 import {User} from "../../types";
+import {Container} from "react-bootstrap";
 
 type Props = {
     user: User | null
@@ -10,9 +10,9 @@ type Props = {
 
 export const AppLayout: FunctionComponent<Props & PropsWithChildren> = ({user, children}) => {
     return <>
-        <Header user={user} />
-        <div className={css.appLayoutBody}>
+        <Header user={user}/>
+        <Container fluid className="col-8 mt-4">
             {children}
-        </div>
+        </Container>
     </>
 }

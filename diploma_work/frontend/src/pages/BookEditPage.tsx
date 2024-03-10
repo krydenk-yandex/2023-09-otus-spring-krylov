@@ -3,6 +3,8 @@ import {Author, Book, BookSaveDto, Genre} from "../types";
 import {useNavigate, useParams} from "react-router-dom";
 import {getSelectInputValue} from "../utils";
 import {getAuthors, getBookById, getGenres, updateBook} from "../api";
+import {Button, Col, Container, Form, Row} from "react-bootstrap";
+import {AppLoader} from "../components/AppLoader/AppLoader";
 
 function BooksEditPage() {
     const [book, setBook] = useState<Book | null>(null);
@@ -20,16 +22,18 @@ function BooksEditPage() {
 
     let { bookId } = useParams();
 
+    const navigateBack = useCallback(() => navigate("/"), [navigate]);
+
     const onSubmit = useCallback((e: FormEvent) => {
         e.preventDefault();
         updateBook(Number(bookId!), formData).then((response) => {
             if (response.ok) {
-                navigate("/")
+                navigateBack();
             }
             throw new Error("Что-то пошло не так");
         } )
             .catch((error) => setError(error.message))
-    }, [formData]);
+    }, [bookId, formData, navigateBack]);
 
     const handleTextChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prevState => ( {...prevState, [e.target.name]: e.target.value}));
@@ -56,55 +60,73 @@ function BooksEditPage() {
                 genresIds: book.genres.map((g: Genre) => g.id)
             });
         })
-    }, [])
+    }, [bookId])
 
     return (
-        <div className="books-list-page">
-            <h1>Редактирование книги</h1>
+        <div>
+            <h3>Редактирование книги</h3>
             {!isLoading ? (
-                <form onSubmit={onSubmit}
+                <Form onSubmit={onSubmit}
                     method="post"
                     className="form"
                 >
-                    <div className="form-field">
-                        <label htmlFor="id-input">ID:</label>
-                        <input id="id-input" disabled type="text" value={book!.id} onChange={handleTextChange}/>
-                    </div>
-                    <div className="form-field">
-                        <label htmlFor="name-input">Название:</label>
-                        <input id="name-input" type="text" name="title" value={formData.title} onChange={handleTextChange}/>
-                    </div>
-                    <div className="form-field">
-                        <label htmlFor="author-input">Автор:</label>
-                        <select id="author-input" name="authorId" onChange={handleSelectChange}>
-                            {authors!.map(author => (
-                                <option value={author.id} key={author.id}
-                                        selected={author.id === formData.authorId}
-                                        label={author.fullName}
-                                />
-                            ))}
-                        </select>
-                    </div>
-                    <div className="form-field">
-                        <label htmlFor="id-input">Жанры:</label>
-                        <select id="author-input" name="genresIds" multiple onChange={handleSelectChange}>
-                            {genres!.map(genre => (
-                                <option value={genre.id} key={genre.id}
-                                        selected={formData.genresIds.includes(genre.id)}>
-                                    {genre.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <button type="submit">Сохранить</button>
-                    {error && (
-                        <div className="form-error">{error}</div>
-                    )}
-                </form>
-            ) : (
-                'Загружаем книгу...'
-            )}
-
+                    <Container>
+                        <Row>
+                            <Col>
+                                <Form.Group className="mb-3" controlId="id-input">
+                                    <Form.Label>ID</Form.Label>
+                                    <Form.Control type="input" disabled value={book!.id}/>
+                                </Form.Group>
+                            </Col>
+                            <Col>
+                                <Form.Group className="mb-3" controlId="name-input">
+                                    <Form.Label>Название</Form.Label>
+                                    <Form.Control type="input" name="title"
+                                                  value={formData.title} onChange={handleTextChange}/>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Form.Group className="mb-3" controlId="genres-input">
+                                    <Form.Label>Жанры</Form.Label>
+                                    <Form.Select name="genresIds" multiple onChange={handleSelectChange}>
+                                        {genres!.map(genre => (
+                                            <option value={genre.id} key={genre.id}
+                                                    selected={formData.genresIds.includes(genre.id)}>
+                                                {genre.name}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col>
+                                <Form.Group className="mb-3" controlId="author-input">
+                                    <Form.Label>Автор</Form.Label>
+                                    <Form.Select name="authorId" onChange={handleSelectChange}>
+                                        {authors!.map(author => (
+                                            <option value={author.id} key={author.id}
+                                                    selected={author.id === formData.authorId}
+                                                    label={author.fullName}
+                                            />
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        {error && (
+                            <div className="form-error">{error}</div>
+                        )}
+                        <Row>
+                            <Col className=''>
+                                <Button variant="primary" type="submit">Сохранить</Button>
+                                <Button className='m-lg-2' variant="outline-secondary"
+                                        onClick={navigateBack}>Назад</Button>
+                            </Col>
+                        </Row>
+                    </Container>
+                </Form>
+            ) : <AppLoader/>}
         </div>
     );
 }

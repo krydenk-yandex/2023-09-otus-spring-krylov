@@ -1,57 +1,67 @@
 import {BookSaveDto, UserAuthDto} from "./types";
 import {toFormData} from "./utils";
 
-const getAuthData = () => (localStorage.getItem("accessToken")
-    ? {headers: {"Authorization": localStorage.getItem("accessToken")!!}}
-    : {}
-);
+const getRequestCommonOptions = () => {
+    const authHeaders = localStorage.getItem("accessToken")
+        ? {headers: {"Authorization": localStorage.getItem("accessToken")!!}}
+        : {}
+
+    const basicHeaders = {
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "*/*"
+        }
+    }
+
+    return {
+        ...basicHeaders,
+        ...authHeaders
+    };
+}
 
 export const getAuth = () => fetch(`/api/auth`, {
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })
 
 export const authenticate = (formData: UserAuthDto) => fetch(`/api/auth/login`, {
     method: "POST",
     body: JSON.stringify(formData),
-    headers: {
-        "Content-Type": "application/json",
-        "Accept": "*/*"
-    }
+    ...getRequestCommonOptions()
 });
 
 export const saveNewBook = (formData: BookSaveDto) => fetch(`/api/books`, {
     method: "POST",
     body: toFormData(formData),
-    ...getAuthData()
+    ...getRequestCommonOptions()
 });
 
 export const getGenres = () => fetch(`/api/genres`, {
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })
     .then(async response => await response.json());
 
 export const getAuthors = () => fetch(`/api/authors`, {
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })
     .then(async response => await response.json());
 
 export const updateBook = (bookId: number, formData: BookSaveDto) => fetch(`/api/books/${bookId}`, {
     method: "PUT",
     body: toFormData(formData),
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })
 
 export const getBookById = (bookId: number) => fetch(`/api/books/${bookId}`, {
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })
     .then(async response => await response.json());
 
 export const getBooks = () => fetch("/api/books", {
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })
     .then(async response => await response.json());
 
 export const deleteBook = (bookId: number) => fetch(`/api/books/${bookId}`, {
     method: "DELETE",
-    ...getAuthData()
+    ...getRequestCommonOptions()
 })

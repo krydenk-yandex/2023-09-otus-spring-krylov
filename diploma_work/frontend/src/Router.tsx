@@ -5,6 +5,7 @@ import BookCreatePage from "./pages/BookCreatePage";
 import React, {FC} from "react";
 import {User} from "./types";
 import {LoginPage} from "./pages/LoginPage";
+import {BookReadPage} from "./pages/BookReadPage";
 
 type Props = {
     user: User | null
@@ -22,12 +23,16 @@ const authorizedRoutes = [
     {
         path: "/books/create",
         element: <BookCreatePage/>,
+    },
+    {
+        path: "/books/:bookId",
+        element: <BookReadPage/>,
     }
 ];
 
 const nonAuthorizedRoutes = [
     {
-        path: "/",
+        path: "*",
         element: <LoginPage />,
     }
 ];
