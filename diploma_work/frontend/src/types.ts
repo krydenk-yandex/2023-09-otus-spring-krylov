@@ -1,3 +1,21 @@
+export type Chapter = {
+    uuid: string,
+    title: string,
+    text: string,
+    book: {
+        id: number,
+        title: string,
+    },
+    nextChapter?: {
+        uuid: string,
+        title: string,
+    }
+    prevChapter?: {
+        uuid: string,
+        title: string,
+    }
+}
+
 export type User = {
     id: number,
     username: string,

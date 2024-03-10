@@ -19,6 +19,16 @@ const getRequestCommonOptions = () => {
     };
 }
 
+export const getChaptersByBookId = (bookId: number) => fetch(`/api/chapters/by-book/${bookId}`, {
+    ...getRequestCommonOptions()
+})
+    .then(async response => await response.json());
+
+export const getChapterByUuid = (uuid: string) => fetch(`/api/chapters/${uuid}`, {
+    ...getRequestCommonOptions()
+})
+    .then(async response => await response.json());
+
 export const getAuth = () => fetch(`/api/auth`, {
     ...getRequestCommonOptions()
 })

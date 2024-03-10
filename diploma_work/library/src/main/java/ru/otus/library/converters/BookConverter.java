@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.otus.library.dto.BookDto;
 import ru.otus.library.dto.BookSaveDto;
+import ru.otus.library.dto.BookReducedDto;
 import ru.otus.library.models.Book;
 import ru.otus.library.models.Genre;
 
@@ -20,6 +21,13 @@ public class BookConverter {
                 book.getTitle(),
                 authorConverter.toDto(book.getAuthor()),
                 book.getGenres().stream().map(genreConverter::toDto).toList()
+        );
+    }
+
+    public BookReducedDto toReducedDto(Book book) {
+        return new BookReducedDto(
+                book.getId(),
+                book.getTitle()
         );
     }
 

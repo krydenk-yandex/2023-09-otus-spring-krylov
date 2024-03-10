@@ -3,3 +3,5 @@ databaseChangeLog:
       path: db/changelog/hw5/
   - includeAll:
       path: db/changelog/hw6/
+  - includeAll:
+      path: db/changelog/diploma/
