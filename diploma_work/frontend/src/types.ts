@@ -36,6 +36,10 @@ export type Book = {
     genres: Genre[],
 }
 
+export type BookWithChapters = Book & {
+    chapters: Chapter[]
+}
+
 export type Author = {
     id: number,
     fullName: string,
@@ -50,4 +54,10 @@ export type BookSaveDto = {
     title: string,
     authorId: number,
     genresIds: number[],
+    chapters: {
+        title: string,
+        text: string,
+    }[],
 }
+
+export type ValidationErrorDto = Record<string, string>;

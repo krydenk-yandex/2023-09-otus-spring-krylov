@@ -5,6 +5,7 @@ insert into chapters
 (
     title,
     uuid,
+    order_number,
     text,
     book_id,
     next_chapter_uuid,
@@ -13,7 +14,7 @@ insert into chapters
 
 values
 
-('Chapter #1', '31db786a-2448-4b3a-ad2b-de4d80efd295',
+('Chapter #1', '31db786a-2448-4b3a-ad2b-de4d80efd295', 0,
      'Discretion quick provided extended contempt friendly change existence civilly wishing extent waiting his.
 
 Forming frequently cordial yet looked smallness adieus arise formerly unreserved arise. Chicken very large formal behind knew exertion continual felicity. Timed twenty then under esteems abilities part imprudence engaged nor collecting estimable marianne heart you dearest. Played need marry simplicity civility repulsive peculiar her just admiration sold breeding passed intention justice forming. Wandered started civility.
@@ -35,7 +36,7 @@ Said expect see lively denote mind reasonably living walls additions additions r
 
 
 
-('Chapter #2', '9718afff-6348-45c2-aa48-f0eaa183687d',
+('Chapter #2', '9718afff-6348-45c2-aa48-f0eaa183687d', 1,
      'Jennings strictly easily dissimilar dining waiting myself son sentiments six resolve few.
 
 Worse piqued feeling answer formed outlived water. Tears deal welcomed applauded esteems read greater thoroughly any. Sold one life delight improving stanhill alteration repulsive why. Perhaps civilly last rose blessing found went when friendly resembled gave. Into supposing wandered timed passed fifteen proceed handsome highly finished debating noisy theirs.
@@ -77,7 +78,7 @@ Pianoforte sympathize of believed me prepare sorry service thing real only diffi
 
 
 
-('Chapter #3', '38b09b5a-ace1-4688-9676-35455dcba123',
+('Chapter #3', '38b09b5a-ace1-4688-9676-35455dcba123', 2,
      'Received even welcome misery.
 
 Handsome marry were entered wicket park waiting doubtful possession matter convinced securing away message overcame is praise. Ask same speedily. Breeding behaved breeding admiration which laughter favourite looking letters no. Inhabiting decay same. Unlocked leave without point know high  lively mind exercise merry suffering almost sportsman perceived suspected.

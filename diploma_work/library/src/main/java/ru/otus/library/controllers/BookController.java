@@ -1,21 +1,25 @@
 package ru.otus.library.controllers;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.otus.library.dto.BookDto;
 import ru.otus.library.dto.BookSaveDto;
+import ru.otus.library.dto.BookWithChaptersDto;
 import ru.otus.library.exceptions.EntityNotFoundException;
-import ru.otus.library.models.Book;
 import ru.otus.library.services.BookService;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -30,8 +34,8 @@ public class BookController {
     }
 
     @GetMapping("/api/books/{bookId}")
-    public Book getBookById(@PathVariable Long bookId) {
-        Optional<Book> book = bookService.findById(bookId);
+    public BookWithChaptersDto getBookById(@PathVariable Long bookId) {
+        var book = bookService.findById(bookId);
 
         if (book.isEmpty()) {
             throw new EntityNotFoundException("The book was not found");
@@ -41,22 +45,28 @@ public class BookController {
     }
 
     @PutMapping("/api/books/{bookId}")
-    public Book editBook(
+    public BookWithChaptersDto editBook(
             @PathVariable Long bookId,
-            @Valid BookSaveDto dto
+            @Valid @RequestBody BookSaveDto dto
     ) {
-        Optional<Book> book = bookService.findById(bookId);
+        var book = bookService.findById(bookId);
 
         if (book.isEmpty()) {
             throw new EntityNotFoundException("The book was not found");
         }
 
-        return bookService.update(bookId, dto.getTitle(), dto.getAuthorId(), dto.getGenresIds());
+        return bookService.update(
+                bookId,
+                dto.getTitle(),
+                dto.getAuthorId(),
+                dto.getGenresIds(),
+                dto.getChapters()
+        );
     }
 
     @PostMapping("/api/books")
-    public Book createBook(@Valid BookSaveDto dto) {
-        return bookService.insert(dto.getTitle(), dto.getAuthorId(), dto.getGenresIds());
+    public BookWithChaptersDto createBook(@Valid @RequestBody BookSaveDto dto) {
+        return bookService.insert(dto.getTitle(), dto.getAuthorId(), dto.getGenresIds(), dto.getChapters());
     }
 
     @DeleteMapping("/api/books/{bookId}")
@@ -69,5 +79,12 @@ public class BookController {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<String> handleNotFound(EntityNotFoundException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+        return ResponseEntity.badRequest().body(ex.getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage)));
     }
 }

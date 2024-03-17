@@ -5,6 +5,7 @@ create table if not exists chapters (
     uuid uuid,
     title varchar(255),
     text text,
+    order_number int,
     book_id bigint references books (id) on delete cascade,
     next_chapter_uuid uuid references chapters (uuid) default null,
     prev_chapter_uuid uuid references chapters (uuid) default null,

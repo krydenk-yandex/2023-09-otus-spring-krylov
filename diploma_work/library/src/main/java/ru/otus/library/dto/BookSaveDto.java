@@ -25,4 +25,8 @@ public class BookSaveDto {
 
     @NotNull(message = "Автор книги должен быть заполнен")
     private Long authorId;
+
+    @NotNull(message = "Главы книги должны быть заполнены")
+    @Size(min = 1, message = "У книги должна быть хотя бы 1 глава")
+    private List<ChapterSaveDto> chapters;
 }

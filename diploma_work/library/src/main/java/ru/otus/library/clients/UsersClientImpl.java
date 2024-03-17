@@ -8,9 +8,11 @@ import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,17 +29,25 @@ public class UsersClientImpl implements UsersClient {
 
     @Override
     public Optional<UserDto> getUser(String token) {
-        var response = this.<UserDto, Void>request(
-                token,
-                HttpMethod.GET,
-                null,
-                "/api/users/info",
-                UserDto.class
-        );
+        try {
+            var response = this.<UserDto, Void>request(
+                    token,
+                    HttpMethod.GET,
+                    null,
+                    "/api/users/info",
+                    UserDto.class
+            );
 
-        return response.getStatusCode().is2xxSuccessful()
-            ? Optional.ofNullable(response.getBody())
-            : Optional.empty();
+            return response.getStatusCode().is2xxSuccessful()
+                    ? Optional.ofNullable(response.getBody())
+                    : Optional.empty();
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                return Optional.empty();
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override

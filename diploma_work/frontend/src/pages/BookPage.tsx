@@ -26,7 +26,7 @@ export const BookPage: FC = () => {
 
     useEffect(() => {
         getBookById(Number(bookId!)).then((book) => setBook(book));
-    }, [book, bookId])
+    }, [bookId])
 
     return book ? (
         <Container>
