@@ -27,7 +27,7 @@ function BooksListPage() {
 
     const deleteBook = useCallback((id: number) => {
         deleteBookApi(id).then(() => {
-            setBooks(books!.filter(b => b.id != id));
+            setBooks(books!.filter(b => b.id !== id));
         })
     }, [books])
 

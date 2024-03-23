@@ -7,6 +7,16 @@ server:
 services:
   users:
     url: http://localhost:8082
+  minio:
+    url: http://localhost:9000
+
+file:
+  allowed-extensions: .jpg, .jpeg, .png
+
+minio:
+  user: minioadmin
+  password: miniopass
+  bucket: library
 
 spring:
   datasource:
@@ -28,3 +38,6 @@ spring:
       mode: always
   liquibase:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB

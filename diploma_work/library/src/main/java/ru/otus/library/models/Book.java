@@ -46,6 +46,9 @@ public class Book {
     @Column(name = "title", nullable = false, unique = true)
     private String title;
 
+    @Column(name = "cover_url", nullable = false)
+    private String coverUrl;
+
     @ManyToOne(targetEntity = Author.class, fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "author_id")
     private Author author;

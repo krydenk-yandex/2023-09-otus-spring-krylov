@@ -11,6 +11,9 @@ services:
       - SPRING_DATASOURCE_USERNAME=library_user
       - SPRING_DATASOURCE_PASSWORD=library_pass
       - SERVICES_USERS_URL=http://app-users:8082
+      - SERVICES_MINIO_URL=http://minio:9000
+      - MINIO_USER=minioadmin
+      - MINIO_PASSWORD=miniopass
 
   app-users:
     build:
@@ -47,3 +50,17 @@ services:
       - POSTGRES_PASSWORD=users_pass
       - POSTGRES_DB=users
 
+  minio:
+    build:
+      context: ./minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # Management Console Port
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: miniopass
+    volumes:
+      - minio-data:/data
+
+volumes:
+  minio-data: {}

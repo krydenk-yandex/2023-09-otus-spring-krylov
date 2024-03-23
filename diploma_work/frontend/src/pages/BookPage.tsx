@@ -8,6 +8,7 @@ import {AppLoader} from "../components/AppLoader/AppLoader";
 
 import css from "./BookPage.module.css";
 import {ChaptersList} from "../components/СhaptersList/ChaptersList";
+import {getBookCover} from "../utils";
 
 export const BookPage: FC = () => {
     const navigate = useNavigate();
@@ -32,11 +33,13 @@ export const BookPage: FC = () => {
         <Container>
             <Row>
                 <Col xs={4}>
-                    <img
-                        className={css.bookImage}
-                        src={'/logo.png'}
-                        alt={"Book"}
-                    />
+                    <div className={css.bookImageContainer}>
+                        <img
+                            className={css.bookImage}
+                            src={getBookCover(book)}
+                            alt={"Book"}
+                        />
+                    </div>
                 </Col>
                 <Col xs={5}>
                     <Row className='fs-3 fw-bold mb-2'>
@@ -46,7 +49,7 @@ export const BookPage: FC = () => {
                     </Row>
                     <Row>
                         <Col>
-                            <span className='fw-bold'>Автор:</span> {book.author.fullName}
+                        <span className='fw-bold'>Автор:</span> {book.author.fullName}
                         </Col>
                     </Row>
                     <Row>

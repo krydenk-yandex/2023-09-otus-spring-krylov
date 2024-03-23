@@ -1,7 +1,7 @@
 import React, {FormEvent, useCallback, useEffect, useState} from 'react';
 import {Author, BookSaveDto, Genre, ValidationErrorDto} from "../types";
 import {useNavigate} from "react-router-dom";
-import {getSelectInputValue} from "../utils";
+import {fileToBase64, getSelectInputValue} from "../utils";
 import {getAuthors, getGenres, saveNewBook} from "../api";
 import {Button, Col, Container, Form, Row} from "react-bootstrap";
 import {AppLoader} from "../components/AppLoader/AppLoader";
@@ -18,7 +18,8 @@ function BookCreatePage() {
         title: "",
         authorId: 1,
         genresIds: [],
-        chapters: []
+        chapters: [],
+        coverBase64: undefined
     })
 
     const navigateBack = useCallback(() => navigate("/"), [navigate]);
@@ -63,6 +64,16 @@ function BookCreatePage() {
         setFormData(prevState => ( {...prevState, [e.target.name]: e.target.value}));
     }, []);
 
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const fileData = e.target.files?.[0];
+
+        if (fileData) {
+            fileToBase64(fileData).then((file) => {
+                setFormData(prevState => ( {...prevState, [e.target.name]: file}));
+            })
+        }
+    }, []);
+
     const handleChapterTextChange = useCallback((index: number, e: React.ChangeEvent<HTMLInputElement>) => {
         formData.chapters[index] = {
             ...formData.chapters[index],
@@ -94,6 +105,14 @@ function BookCreatePage() {
                                     <Form.Label>Название</Form.Label>
                                     <Form.Control type="input" name="title"
                                                   value={formData.title} onChange={handleTextChange}/>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <Form.Group controlId="formFile" className="mb-3">
+                                    <Form.Label>Обложка (.jpg, .jpeg, .png)</Form.Label>
+                                    <Form.Control type="file" name="coverBase64" onChange={handleFileChange}/>
                                 </Form.Group>
                             </Col>
                         </Row>

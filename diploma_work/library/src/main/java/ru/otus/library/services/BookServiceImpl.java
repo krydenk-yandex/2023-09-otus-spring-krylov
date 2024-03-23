@@ -54,17 +54,28 @@ public class BookServiceImpl implements BookService {
 
     @Transactional
     @Override
-    public BookWithChaptersDto insert(String title, long authorId, List<Long> genresIds, List<ChapterSaveDto> chapters) {
+    public BookWithChaptersDto insert(
+            String title,
+            String coverUrl,
+            long authorId,
+            List<Long> genresIds,
+            List<ChapterSaveDto> chapters
+    ) {
         return bookConverter.toDtoWithChapters(
-                save(0, title, authorId, genresIds, chapters)
+                save(0, title, coverUrl, authorId, genresIds, chapters)
         );
     }
 
     @Transactional
     @Override
-    public BookWithChaptersDto update(long id, String title, long authorId, List<Long> genresIds, List<ChapterSaveDto> chapters) {
+    public BookWithChaptersDto update(long id,
+                                      String title,
+                                      String coverUrl,
+                                      long authorId,
+                                      List<Long> genresIds,
+                                      List<ChapterSaveDto> chapters) {
         return bookConverter.toDtoWithChapters(
-                save(id, title, authorId, genresIds, chapters)
+                save(id, title, coverUrl, authorId, genresIds, chapters)
         );
     }
 
@@ -74,7 +85,12 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
-    private Book save(long id, String title, long authorId, List<Long> genresIds, List<ChapterSaveDto> chapterDtos) {
+    private Book save(long id,
+                      String title,
+                      String coverUrl,
+                      long authorId,
+                      List<Long> genresIds,
+                      List<ChapterSaveDto> chapterDtos) {
         var author = authorRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
         var genres = genreRepository.findByIdIn(genresIds);
@@ -85,6 +101,7 @@ public class BookServiceImpl implements BookService {
         var book = new Book();
         book.setId(id);
         book.setTitle(title);
+        book.setCoverUrl(coverUrl);
         book.setAuthor(author);
         book.setGenres(genres);
 

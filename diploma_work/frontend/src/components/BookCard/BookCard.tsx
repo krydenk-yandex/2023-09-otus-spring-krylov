@@ -5,6 +5,7 @@ import {Book} from "../../types";
 import css from './BookCard.module.css';
 import {useNavigate} from "react-router-dom";
 import {useIsAdmin} from "../../hooks/useIsAdmin";
+import {getBookCover, MINIO_URL} from "../../utils";
 
 type Props = {
     book: Book
@@ -28,11 +29,13 @@ export const BookCard: FC<Props> = ({book, onDelete}) => {
         <Container className={css.bookCard}>
             <Row>
                 <Col xs={3}>
-                    <img
-                        className={css.bookImage}
-                        src={'/logo.png'}
-                        alt={"Book"}
-                    />
+                    <div className={css.bookImageContainer}>
+                        <img
+                            className={css.bookImage}
+                            src={getBookCover(book)}
+                            alt={"Book"}
+                        />
+                    </div>
                 </Col>
                 <Col xs={6}>
                     <Row className='fs-5 fw-bold mb-2'>

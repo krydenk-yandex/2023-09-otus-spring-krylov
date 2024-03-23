@@ -23,6 +23,7 @@ public class BookConverter {
         return new BookDto(
                 book.getId(),
                 book.getTitle(),
+                book.getCoverUrl(),
                 authorConverter.toDto(book.getAuthor()),
                 book.getGenres().stream().map(genreConverter::toDto).toList()
         );
@@ -32,6 +33,7 @@ public class BookConverter {
         return new BookWithChaptersDto(
                 book.getId(),
                 book.getTitle(),
+                book.getCoverUrl(),
                 authorConverter.toDto(book.getAuthor()),
                 book.getGenres().stream().map(genreConverter::toDto).toList(),
                 book.getChapters().stream()

@@ -30,6 +30,7 @@ export type UserAuthDto = {
 export type Book = {
     id: number,
     title: string,
+    coverUrl: string,
 
     author: Author,
 
@@ -58,6 +59,7 @@ export type BookSaveDto = {
         title: string,
         text: string,
     }[],
+    coverBase64?: String
 }
 
 export type ValidationErrorDto = Record<string, string>;
