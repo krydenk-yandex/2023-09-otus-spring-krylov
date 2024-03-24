@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,5 +28,10 @@ public class ChaptersController {
     public ChapterDto getChapter(@PathVariable UUID uuid) {
         return chaptersService.findByUuid(uuid)
                 .orElseThrow(() -> new EntityNotFoundException("The chapter was not found"));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleNotFound(EntityNotFoundException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

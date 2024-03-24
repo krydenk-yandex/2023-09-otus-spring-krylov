@@ -13,7 +13,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.otus.users.controllers.AuthController;
 import ru.otus.users.models.Authority;
 import ru.otus.users.models.User;
 import ru.otus.users.repositories.UserRepository;
@@ -21,7 +20,8 @@ import ru.otus.users.security.SecurityConfiguration;
 import ru.otus.users.security.UserService;
 import ru.otus.users.services.JwtServiceImpl;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;

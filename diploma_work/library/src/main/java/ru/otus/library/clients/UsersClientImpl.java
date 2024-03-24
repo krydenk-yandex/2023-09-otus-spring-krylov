@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import jakarta.annotation.Nullable;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,7 +26,8 @@ public class UsersClientImpl implements UsersClient {
     private final RestOperations rest = new RestTemplate();
 
     @Value("${services.users.url}")
-    String usersUrl;
+    @Setter
+    private String usersUrl;
 
     @Override
     public Optional<UserDto> getUser(String token) {
@@ -65,12 +67,12 @@ public class UsersClientImpl implements UsersClient {
                 : Optional.empty();
     }
 
-    private <TResp, TBody> ResponseEntity<TResp> request(
+    private <R, B> ResponseEntity<R> request(
             String token,
             HttpMethod httpMethod,
-            @Nullable TBody body,
+            @Nullable B body,
             String path,
-            Class<TResp> responseType
+            Class<R> responseType
     ) {
         URI uri = UriComponentsBuilder.fromHttpUrl(usersUrl)
                 .path(path)
@@ -81,14 +83,14 @@ public class UsersClientImpl implements UsersClient {
             headers.put(HttpHeaders.AUTHORIZATION, List.of("Bearer " + token));
         }
 
-        RequestEntity<TBody> requestEntity = new RequestEntity<TBody>(
+        RequestEntity<B> requestEntity = new RequestEntity<B>(
                 body,
                 headers,
                 httpMethod,
                 uri
         );
 
-        return rest.<TResp>exchange(
+        return rest.<R>exchange(
                 requestEntity,
                 responseType
         );

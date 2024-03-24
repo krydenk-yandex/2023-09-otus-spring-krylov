@@ -19,7 +19,9 @@ import ru.otus.library.repositories.ChapterRepository;
 @Service
 public class ChaptersServiceImpl implements ChaptersService {
     private final ChapterRepository chapterRepository;
+
     private final ChapterConverter chapterConverter;
+
     private final BookConverter bookConverter;
 
     @Override

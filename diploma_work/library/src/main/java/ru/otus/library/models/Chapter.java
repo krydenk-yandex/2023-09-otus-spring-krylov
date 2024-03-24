@@ -28,34 +28,6 @@ import org.springframework.data.domain.Persistable;
 @Table(name = "chapters")
 public class Chapter implements Persistable<UUID> {
 
-    public Chapter(
-            UUID uuid,
-            Integer orderNumber,
-            String title,
-            String text,
-            Book book,
-            @Nullable Chapter prevChapter,
-            @Nullable Chapter nextChapter
-    ) {
-        super();
-        this.uuid = uuid;
-        this.title = title;
-        this.orderNumber = orderNumber;
-        this.text = text;
-        this.book = book;
-        this.prevChapter = prevChapter;
-        this.nextChapter = nextChapter;
-    }
-
-    public Chapter(UUID uuid, Integer orderNumber, String title, String text, Book book) {
-        super();
-        this.uuid = uuid;
-        this.orderNumber = orderNumber;
-        this.title = title;
-        this.text = text;
-        this.book = book;
-    }
-
     @Id
     @Column(name = "uuid", nullable = false)
     private UUID uuid;
@@ -84,13 +56,41 @@ public class Chapter implements Persistable<UUID> {
     @JoinColumn(name = "prev_chapter_uuid", referencedColumnName = "uuid")
     private Chapter prevChapter;
 
+    @Transient
+    private boolean isNew = true;
+
+    public Chapter(
+            UUID uuid,
+            Integer orderNumber,
+            String title,
+            String text,
+            Book book,
+            @Nullable Chapter prevChapter,
+            @Nullable Chapter nextChapter
+    ) {
+        super();
+        this.uuid = uuid;
+        this.title = title;
+        this.orderNumber = orderNumber;
+        this.text = text;
+        this.book = book;
+        this.prevChapter = prevChapter;
+        this.nextChapter = nextChapter;
+    }
+
+    public Chapter(UUID uuid, Integer orderNumber, String title, String text, Book book) {
+        super();
+        this.uuid = uuid;
+        this.orderNumber = orderNumber;
+        this.title = title;
+        this.text = text;
+        this.book = book;
+    }
+
     @Override
     public UUID getId() {
         return isNew ? null : uuid;
     }
-
-    @Transient
-    private boolean isNew = true;
 
     @Override
     public boolean isNew() {

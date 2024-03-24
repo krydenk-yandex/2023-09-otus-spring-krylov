@@ -13,6 +13,7 @@ public class BookDto {
     private long id;
 
     private String title;
+
     private String coverUrl;
 
     private AuthorDto author;

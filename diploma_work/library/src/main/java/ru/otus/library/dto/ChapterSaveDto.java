@@ -11,6 +11,8 @@ import lombok.Setter;
 @Setter
 public class ChapterSaveDto {
     private UUID uuid;
+
     private String title;
+
     private String text;
 }

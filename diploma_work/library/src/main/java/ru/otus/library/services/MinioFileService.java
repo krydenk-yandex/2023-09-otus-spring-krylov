@@ -2,8 +2,14 @@ package ru.otus.library.services;
 
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
-import io.minio.errors.*;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,15 +24,17 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class MinioFileService implements FileService{
+public class MinioFileService implements FileService {
 
     private final MinioClient minioClient;
 
     @Value("${minio.bucket}")
-    String bucketName;
+    @Setter
+    private String bucketName;
 
     @Value("#{'${file.allowed-extensions}'.split(', ')}")
-    List<String> allowedExtensions;
+    @Setter
+    private List<String> allowedExtensions;
 
     private String getFileName(MultipartFile file) {
         return String.join("_",

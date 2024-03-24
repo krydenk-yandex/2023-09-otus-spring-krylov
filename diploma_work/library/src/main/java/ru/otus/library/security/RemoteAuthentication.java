@@ -9,17 +9,17 @@ import ru.otus.library.dto.UserDto;
 
 public class RemoteAuthentication implements Authentication {
 
-    public RemoteAuthentication(String token, UserDto user, boolean authenticated) {
-        this.token = token;
-        this.user = user;
-        this.authenticated = authenticated;
-    }
-
     private final String token;
 
     private final UserDto user;
 
     private boolean authenticated;
+
+    public RemoteAuthentication(String token, UserDto user, boolean authenticated) {
+        this.token = token;
+        this.user = user;
+        this.authenticated = authenticated;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

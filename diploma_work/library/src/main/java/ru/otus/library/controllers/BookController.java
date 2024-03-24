@@ -4,12 +4,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import ru.otus.library.dto.BookDto;
 import ru.otus.library.dto.BookSaveDto;
 import ru.otus.library.dto.BookWithChaptersDto;
@@ -25,7 +34,7 @@ public class BookController {
 
     private final FileService fileService;
 
-    private final String BOOK_COVER_NAME = "book_cover";
+    private final String bookCoverName = "book_cover";
 
     @GetMapping("/api/books")
     public List<BookDto> booksList() {
@@ -44,6 +53,7 @@ public class BookController {
     }
 
     @PutMapping("/api/books/{bookId}")
+    @RolesAllowed("ADMIN")
     public BookWithChaptersDto editBook(
             @PathVariable Long bookId,
             @Valid @RequestBody BookSaveDto dto
@@ -57,7 +67,7 @@ public class BookController {
         var fileUrl = book.get().getCoverUrl();
         if (dto.getCoverBase64() != null) {
             fileUrl = fileService.putFileToFileStoreAndReturnUrl(
-                    (new FileUtils()).convertFromBase64(BOOK_COVER_NAME, dto.getCoverBase64())
+                    (new FileUtils()).convertFromBase64(bookCoverName, dto.getCoverBase64())
             );
         }
 
@@ -72,6 +82,7 @@ public class BookController {
     }
 
     @PostMapping("/api/books")
+    @RolesAllowed("ADMIN")
     public BookWithChaptersDto createBook(
             @Valid @RequestBody BookSaveDto dto
     ) {
@@ -79,7 +90,7 @@ public class BookController {
             throw new IllegalArgumentException("Обложка не должна быть пустой");
         }
         var fileUrl = fileService.putFileToFileStoreAndReturnUrl(
-                (new FileUtils()).convertFromBase64(BOOK_COVER_NAME, dto.getCoverBase64())
+                (new FileUtils()).convertFromBase64(bookCoverName, dto.getCoverBase64())
         );
 
         return bookService.insert(
@@ -92,7 +103,8 @@ public class BookController {
     }
 
     @DeleteMapping("/api/books/{bookId}")
-    public void deleteBook(@PathVariable Long bookId) {
+    @RolesAllowed("ADMIN")
+    public void deleteBook(@PathVariable Long bookId, Authentication auth) {
         if (bookService.existById(bookId)) {
             bookService.deleteById(bookId);
         }

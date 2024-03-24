@@ -4,7 +4,12 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
@@ -12,16 +17,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FileUtils {
-    private static final Map<String, String> mimeTypeToExtensionMap;
+    private static final Map<String, String> MIME_TYPE_TO_EXTENSION_MAP;
 
     static {
-        mimeTypeToExtensionMap = new HashMap<>();
-        mimeTypeToExtensionMap.put("application/javascript", ".js");
-        mimeTypeToExtensionMap.put("text/html", ".html");
-        mimeTypeToExtensionMap.put("text/plain", ".txt");
-        mimeTypeToExtensionMap.put("image/jpeg", ".jpg");
-        mimeTypeToExtensionMap.put("image/png", ".png");
-        mimeTypeToExtensionMap.put("application/pdf", ".pdf");
+        MIME_TYPE_TO_EXTENSION_MAP = new HashMap<>();
+        MIME_TYPE_TO_EXTENSION_MAP.put("application/javascript", ".js");
+        MIME_TYPE_TO_EXTENSION_MAP.put("text/html", ".html");
+        MIME_TYPE_TO_EXTENSION_MAP.put("text/plain", ".txt");
+        MIME_TYPE_TO_EXTENSION_MAP.put("image/jpeg", ".jpg");
+        MIME_TYPE_TO_EXTENSION_MAP.put("image/png", ".png");
+        MIME_TYPE_TO_EXTENSION_MAP.put("application/pdf", ".pdf");
     }
 
     public MultipartFile convertFromBase64(String fileName, String base64String) {
@@ -34,9 +39,10 @@ public class FileUtils {
         String[] parts = base64String.substring(5).split(";base64,");
 
         var mimeType = parts[0];
+
         var base64Data = parts[1];
 
-        var extension = mimeTypeToExtensionMap.getOrDefault(mimeType, "");
+        var extension = MIME_TYPE_TO_EXTENSION_MAP.getOrDefault(mimeType, "");
 
         byte[] fileContent = Base64.getDecoder().decode(base64Data);
 
@@ -49,7 +55,9 @@ public class FileUtils {
     public static class CustomMultipartFile implements MultipartFile {
 
         private final byte[] fileContent;
+
         private final String fileName;
+
         private final String contentType;
 
         public CustomMultipartFile(byte[] fileContent, String fileName, String contentType) {

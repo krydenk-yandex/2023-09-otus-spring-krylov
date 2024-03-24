@@ -53,21 +53,18 @@ public class ChapterConverter {
                 isNew = false;
             }
 
-            var chapter = new Chapter(
-                    uuid,
-                    order.getAndSet(order.get() + 1),
-                    dto.getTitle(),
-                    dto.getText(),
-                    book,
-                    null,
-                    null
-            );
-
+            var chapter = new Chapter(uuid, order.getAndSet(order.get() + 1), dto.getTitle(),
+                    dto.getText(), book, null, null);
             chapter.setIsNew(isNew);
-
             return chapter;
         }).toList();
 
+        updateNextAndPrevChaptersPointers(chapters);
+
+        return chapters;
+    }
+
+    private void updateNextAndPrevChaptersPointers(List<Chapter> chapters) {
         var it = chapters.iterator();
         Chapter cur = it.next();
         Chapter prev = null;
@@ -79,7 +76,5 @@ public class ChapterConverter {
             cur = next;
         }
         cur.setPrevChapter(prev);
-
-        return chapters;
     }
 }
