@@ -9,17 +9,17 @@ import ru.otus.users.models.User;
 
 public class LoginPasswordAuthenticationToken implements Authentication {
 
-    public LoginPasswordAuthenticationToken(String username, String password, User user, boolean authenticated) {
-        credentials = new LoginPasswordDto(username, password);
-        this.user = user;
-        this.authenticated = authenticated;
-    }
-
     private LoginPasswordDto credentials;
 
     private User user;
 
     private boolean authenticated;
+
+    public LoginPasswordAuthenticationToken(String username, String password, User user, boolean authenticated) {
+        this.credentials = new LoginPasswordDto(username, password);
+        this.user = user;
+        this.authenticated = authenticated;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

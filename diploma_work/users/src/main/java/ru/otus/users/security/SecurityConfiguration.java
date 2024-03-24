@@ -6,12 +6,11 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,22 +32,23 @@ import java.security.interfaces.RSAPublicKey;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    UserService userService;
+    private final UserService userService;
 
+    @Setter
     @Value("${jwt.keys.public}")
-    RSAPublicKey publicKey;
+    private RSAPublicKey publicKey;
 
+    @Setter
     @Value("${jwt.keys.private}")
-    RSAPrivateKey privateKey;
+    private RSAPrivateKey privateKey;
 
     @Bean
-    public SecurityFilterChain securityFilterChain( HttpSecurity http ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -56,11 +56,11 @@ public class SecurityConfiguration {
                         new LoginPasswordAuthenticationFilter(userRepository, passwordEncoder()),
                         AnonymousAuthenticationFilter.class
                 )
-                .oauth2ResourceServer( config -> config.jwt(withDefaults()) )
-                .sessionManagement( ( session ) -> session.sessionCreationPolicy( SessionCreationPolicy.STATELESS ) )
-                .exceptionHandling( ( exceptions ) -> exceptions
-                        .authenticationEntryPoint( new BearerTokenAuthenticationEntryPoint() )
-                        .accessDeniedHandler( new BearerTokenAccessDeniedHandler() )
+                .oauth2ResourceServer(config -> config.jwt(withDefaults()))
+                .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling((exceptions) -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
                 ).build();
     }
 
@@ -71,7 +71,7 @@ public class SecurityConfiguration {
 
     @Bean
     JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withPublicKey( this.publicKey).build();
+        return NimbusJwtDecoder.withPublicKey(this.publicKey).build();
     }
 
     @Bean
@@ -80,7 +80,7 @@ public class SecurityConfiguration {
                 .Builder(this.publicKey)
                 .privateKey(this.privateKey)
                 .build();
-        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>( new JWKSet( jwk ) );
-        return new NimbusJwtEncoder( jwks );
+        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+        return new NimbusJwtEncoder(jwks);
     }
 }

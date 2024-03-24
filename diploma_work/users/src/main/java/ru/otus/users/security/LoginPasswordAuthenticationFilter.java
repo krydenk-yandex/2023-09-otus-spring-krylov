@@ -28,7 +28,6 @@ public class LoginPasswordAuthenticationFilter extends OncePerRequestFilter {
         byte[] inputStreamBytes = StreamUtils.copyToByteArray(request.getInputStream());
         String username;
         String password;
-
         try {
             Map<String, String> jsonRequest = new ObjectMapper().readValue(inputStreamBytes, Map.class);
             username = jsonRequest.get("username");
@@ -45,8 +44,9 @@ public class LoginPasswordAuthenticationFilter extends OncePerRequestFilter {
                                 true
                         ));
             }
-        } catch (IOException ignored) {}
-
+        } catch (IOException ignored) {
+            System.out.println("Incorrect JSON value");
+        }
         filterChain.doFilter(request, response);
     }
 }
