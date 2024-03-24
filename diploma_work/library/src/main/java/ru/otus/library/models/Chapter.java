@@ -45,7 +45,6 @@ public class Chapter implements Persistable<UUID> {
     @JoinColumn(name = "book_id", referencedColumnName = "id")
     private Book book;
 
-
     @Nullable
     @OneToOne(targetEntity = Chapter.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "next_chapter_uuid", referencedColumnName = "uuid")
