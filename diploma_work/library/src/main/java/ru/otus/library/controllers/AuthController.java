@@ -1,6 +1,7 @@
 package ru.otus.library.controllers;
 
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,11 +23,10 @@ public class AuthController {
     private final UsersClient usersClient;
 
     @PostMapping("/api/auth/login")
-    public String login(@RequestBody LoginPasswordDto dto) {
+    public String login(@Valid @RequestBody LoginPasswordDto dto) {
         return usersClient.login(dto).orElseThrow(LoginOrPasswordInvalidException::new);
     }
 
-    @RolesAllowed("ROLE_USER")
     @GetMapping("/api/auth")
     public UserDto getAuth(Authentication authentication) {
         return ((RemoteAuthentication)authentication).getPrincipal();

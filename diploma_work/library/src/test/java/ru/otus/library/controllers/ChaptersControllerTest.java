@@ -87,7 +87,7 @@ class ChaptersControllerTest {
 
     @Test
     @DisplayName("возвращать пустой список глав, если запрошенная книга не существует")
-    public void chaptersList_WhenNoChapters_ThrowsEntityNotFoundException() throws Exception {
+    public void chaptersListEmptyListWhenBookNotExistOrEmpty() throws Exception {
         given(chaptersService.findAllByByBookId(any(Long.class))).willReturn(List.of());
 
         mockMvc.perform(get("/api/chapters/by-book/99")
